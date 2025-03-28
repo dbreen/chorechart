@@ -38,8 +38,9 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { APP_VERSION } from 'src/config'
 
 export default defineComponent({
   name: 'IndexPage',
@@ -47,6 +48,18 @@ export default defineComponent({
   setup() {
     const $q = useQuasar()
     
+    // Update version check to use the config constant
+    const storedVersion = localStorage.getItem('choreChartVersion');
+
+    // Check if we need to clear cache due to version update
+    if (!storedVersion || storedVersion !== APP_VERSION) {
+      console.log('New app version detected, clearing cache');
+      // Clear chore data cache
+      localStorage.removeItem('choreData');
+      // Update stored version
+      localStorage.setItem('choreChartVersion', APP_VERSION);
+    }
+
     // Get data from local storage or initialize if not present
     const initializeWeek = () => {
       if (!$q.localStorage.has('choreData')) {
@@ -151,6 +164,15 @@ export default defineComponent({
       allCompleted: day.allCompleted
     }))
     
+    onMounted(() => {
+      // Debug validation to verify weekends are removed
+      const today = new Date();
+      const dayOfWeek = today.getDay(); // 0 for Sunday, 6 for Saturday
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        console.log('Today is a weekend day, should not show weekend content');
+      }
+    });
+
     return {
       days
     }

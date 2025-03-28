@@ -1,176 +1,234 @@
 <template>
   <q-page padding>
-    <div class="row items-center q-mb-md">
-      <div class="col">
-        <h5 class="q-mt-none q-mb-md">Weekly Summary</h5>
-      </div>
-      <div class="col-auto">
-        <q-btn flat round icon="arrow_back" color="primary" to="/" />
-      </div>
+    <div class="q-mb-md">
+      <q-btn icon="arrow_back" flat round to="/" />
+      <h5 class="q-mt-none q-mb-md inline-block q-ml-sm">Weekly Summary</h5>
     </div>
     
-    <!-- Weekly Overview -->
     <q-card class="q-mb-md">
       <q-card-section>
-        <div class="text-h6">This Week's Progress</div>
+        <div class="text-h6">Allowance Earned</div>
+        <div class="text-h4">${{ totalEarned }}</div>
+      </q-card-section>
+    </q-card>
+    
+    <q-card class="q-mb-md">
+      <q-card-section>
+        <div class="text-h6">Daily Breakdown</div>
       </q-card-section>
       
-      <q-list bordered separator>
-        <q-item v-for="day in days" :key="day.name">
+      <q-list>
+        <q-item v-for="day in days" :key="day.name" :class="day.allCompleted ? 'bg-green-1' : ''">
           <q-item-section>
             <q-item-label>{{ day.name }}</q-item-label>
           </q-item-section>
           
+          <q-item-section>
+            <q-chip v-if="day.dailiesCompleted" color="positive" text-color="white" size="sm">
+              Daily: $1
+            </q-chip>
+            <q-chip v-if="day.uniqueCompleted" color="positive" text-color="white" size="sm">
+              Special: $1
+            </q-chip>
+            <q-chip v-if="day.bonusCompleted" color="positive" text-color="white" size="sm">
+              Bonus: $1
+            </q-chip>
+          </q-item-section>
+          
           <q-item-section side>
-            <div class="row items-center">
-              <q-badge
-                :color="day.dailiesCompleted ? 'positive' : 'grey'"
-                class="q-mr-xs"
-                label="Daily"
-              />
-              <q-badge
-                :color="day.uniqueCompleted ? 'positive' : 'grey'"
-                class="q-mr-xs"
-                label="Special"
-              />
-              <q-badge
-                v-if="day.bonusAvailable"
-                :color="day.bonusCompleted ? 'positive' : 'amber'"
-                label="Bonus"
-              />
-              <q-badge
-                class="q-ml-sm"
-                color="primary"
-              >
-                ${{ calculateDailyTotal(day) }}
-              </q-badge>
-            </div>
+            <div class="text-subtitle1">${{ getDayEarnings(day) }}</div>
           </q-item-section>
         </q-item>
       </q-list>
     </q-card>
     
-    <!-- Weekly Totals -->
-    <q-card class="bg-primary text-white">
+    <q-card class="q-mb-md">
       <q-card-section>
-        <div class="text-h6">Total Earnings</div>
-        <div class="row items-center">
-          <div class="col">
-            <div class="text-h3">{{ totalEarned }}</div>
-          </div>
-          <div class="col-auto">
-            <q-btn
-              color="white"
-              text-color="primary"
-              label="Reset Week"
-              @click="confirmReset"
-            />
-          </div>
-        </div>
+        <div class="text-h6">Your Sticker Collection</div>
       </q-card-section>
       
       <q-card-section>
-        <div class="text-subtitle1">Daily chores: ${{ dailiesTotal }}</div>
-        <div class="text-subtitle1">Special chores: ${{ uniqueTotal }}</div>
-        <div class="text-subtitle1">Bonus chores: ${{ bonusTotal }}</div>
+        <div class="row q-gutter-sm sticker-collection">
+          <q-badge 
+            v-for="(sticker, index) in earnedStickers" 
+            :key="index" 
+            rounded 
+            class="sticker-badge"
+          >
+            <span class="text-h5">{{ sticker.emoji }}</span>
+          </q-badge>
+          
+          <div v-if="earnedStickers.length === 0" class="text-center full-width text-grey">
+            No stickers earned yet. Complete chores to earn cool stickers!
+          </div>
+        </div>
       </q-card-section>
     </q-card>
+    
+    <q-card>
+      <q-card-actions align="right">
+        <q-btn color="primary" label="Reset Week" @click="confirmReset" />
+      </q-card-actions>
+    </q-card>
+    
+    <q-dialog v-model="showResetConfirm">
+      <q-card>
+        <q-card-section class="row items-center">
+          <q-icon name="warning" color="warning" size="md" class="q-mr-sm"/>
+          <span class="text-h6">Reset Week?</span>
+        </q-card-section>
+        
+        <q-card-section>
+          This will clear all tasks and start a fresh week. Your sticker collection will be preserved.
+        </q-card-section>
+        
+        <q-card-actions align="right">
+          <q-btn flat label="Cancel" color="primary" v-close-popup />
+          <q-btn flat label="Reset" color="negative" @click="resetWeek" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
-import { useQuasar } from 'quasar'
+import { defineComponent, ref, computed, onMounted } from 'vue';
+import { useQuasar } from 'quasar';
 
 export default defineComponent({
   name: 'SummaryPage',
   
   setup() {
-    const $q = useQuasar()
+    const $q = useQuasar();
+    const choreData = ref(null);
+    const days = ref([]);
+    const showResetConfirm = ref(false);
+    const earnedStickers = ref([]);
     
-    // Get data from local storage
-    const choreData = $q.localStorage.getItem('choreData')
-    const days = choreData.days
+    onMounted(() => {
+      loadChoreData();
+    });
     
-    const calculateDailyTotal = (day) => {
-      let total = 0
-      if (day.dailiesCompleted) total += 1
-      if (day.uniqueCompleted) total += 1
-      if (day.bonusAvailable && day.bonusCompleted) total += 1
-      return total
-    }
+    const loadChoreData = () => {
+      choreData.value = $q.localStorage.getItem('choreData');
+      days.value = choreData.value.days;
+      
+      // Collect all earned stickers
+      earnedStickers.value = collectEarnedStickers();
+    };
     
-    // Calculate weekly totals
-    const dailiesTotal = computed(() => {
-      return days.filter(day => day.dailiesCompleted).length
-    })
+    const collectEarnedStickers = () => {
+      const stickers = [];
+      
+      days.value.forEach(day => {
+        // Check daily chores for stickers
+        day.dailyChores.forEach(chore => {
+          if (chore.sticker) {
+            stickers.push(chore.sticker);
+          }
+        });
+        
+        // Check unique chore
+        if (day.uniqueChore.sticker) {
+          stickers.push(day.uniqueChore.sticker);
+        }
+        
+        // Check bonus chore
+        if (day.bonusChore.sticker) {
+          stickers.push(day.bonusChore.sticker);
+        }
+      });
+      
+      return stickers;
+    };
     
-    const uniqueTotal = computed(() => {
-      return days.filter(day => day.uniqueCompleted).length
-    })
-    
-    const bonusTotal = computed(() => {
-      return days.filter(day => day.bonusAvailable && day.bonusCompleted).length
-    })
+    const getDayEarnings = (day) => {
+      let total = 0;
+      if (day.dailiesCompleted) total += 1;
+      if (day.uniqueCompleted) total += 1;
+      if (day.bonusCompleted) total += 1;
+      return total;
+    };
     
     const totalEarned = computed(() => {
-      return dailiesTotal.value + uniqueTotal.value + bonusTotal.value
-    })
-    
-    const resetWeek = () => {
-      days.forEach(day => {
-        // Reset daily chores
-        day.dailyChores.forEach(chore => {
-          chore.completed = false
-        })
-        
-        // Reset unique chore
-        day.uniqueChore.completed = false
-        
-        // Reset bonus chore
-        day.bonusChore.completed = false
-        day.bonusAvailable = false
-        
-        // Reset status flags
-        day.dailiesCompleted = false
-        day.uniqueCompleted = false
-        day.bonusCompleted = false
-        day.allCompleted = false
-      })
-      
-      // Update reset date
-      choreData.lastResetDate = new Date().toISOString()
-      
-      // Save to local storage
-      $q.localStorage.set('choreData', choreData)
-      
-      // Show confirmation
-      $q.notify({
-        message: 'Week has been reset successfully',
-        color: 'positive'
-      })
-    }
+      return days.value.reduce((total, day) => {
+        return total + getDayEarnings(day);
+      }, 0);
+    });
     
     const confirmReset = () => {
-      $q.dialog({
-        title: 'Reset Week',
-        message: 'This will clear all chores and start a new week. Are you sure?',
-        cancel: true,
-        persistent: true
-      }).onOk(() => {
-        resetWeek()
-      })
-    }
+      showResetConfirm.value = true;
+    };
+    
+    const resetWeek = () => {
+      // Save the sticker collection before reset
+      const savedStickers = collectEarnedStickers();
+      
+      // Reset all chores
+      days.value.forEach(day => {
+        // Reset daily chores
+        day.dailyChores.forEach(chore => {
+          chore.completed = false;
+          // Keep the sticker data
+        });
+        
+        // Reset unique chore
+        day.uniqueChore.completed = false;
+        // Keep the sticker data
+        
+        // Reset bonus chore
+        day.bonusChore.completed = false;
+        // Keep the sticker data
+        
+        // Reset completion flags
+        day.dailiesCompleted = false;
+        day.uniqueCompleted = false;
+        day.bonusCompleted = false;
+        day.allCompleted = false;
+      });
+      
+      // Update reset date
+      choreData.value.lastResetDate = new Date().toISOString();
+      
+      // Save updated data
+      $q.localStorage.set('choreData', choreData.value);
+      
+      // Store sticker collection in separate storage
+      $q.localStorage.set('stickerCollection', savedStickers);
+      
+      $q.notify({
+        message: 'Week reset successfully!',
+        color: 'positive'
+      });
+    };
     
     return {
       days,
-      calculateDailyTotal,
-      dailiesTotal,
-      uniqueTotal,
-      bonusTotal,
       totalEarned,
-      confirmReset
-    }
+      getDayEarnings,
+      showResetConfirm,
+      confirmReset,
+      resetWeek,
+      earnedStickers
+    };
   }
-})
+});
 </script>
+
+<style lang="scss" scoped>
+.sticker-collection {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.sticker-badge {
+  padding: 10px;
+  margin: 5px;
+  transition: transform 0.2s ease;
+  
+  &:hover {
+    transform: scale(1.2);
+  }
+}
+</style>

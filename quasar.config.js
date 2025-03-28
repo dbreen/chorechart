@@ -26,17 +26,40 @@ module.exports = function (ctx) {
         'QCheckbox',
         'QSeparator',
         'QBadge',
-        'QSpace'
+        'QSpace',
+        'QTabs',
+        'QTab',
+        'QTabPanels',
+        'QTabPanel',
+        'QChip',
+        'QDialog'
       ],
-      directives: ['Ripple'],
+      directives: ['Ripple', 'ClosePopup'],
       plugins: ['Notify', 'LocalStorage']
     },
     build: {
       vueRouterMode: 'hash',
-      publicPath: '/chorechart/'
+      publicPath: '/chorechart/',
+      env: {
+        APP_VERSION: JSON.stringify(require('./package.json').version)
+      }
+    },
+    devServer: {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
     },
     pwa: {
-      workboxOptions: {},
+      workboxOptions: {
+        skipWaiting: true,
+        clientsClaim: true,
+        runtimeCaching: [{
+          urlPattern: /^https:\/\/fonts\.googleapis\.com/,
+          handler: 'StaleWhileRevalidate'
+        }]
+      },
       manifest: {
         name: 'ChoreChart',
         short_name: 'ChoreChart',

@@ -2,7 +2,7 @@
 
 A simple chore tracking app for kids to manage their daily tasks and earn allowance. Designed as a Progressive Web App (PWA) with offline support, this app helps kids track their daily chores and earn rewards.
 
-![ChoreChart App](https://via.placeholder.com/800x450?text=ChoreChart+App)
+![ChoreChart App](https://danbreen.net/chorechart/)
 
 ## Features
 
@@ -42,7 +42,7 @@ A simple chore tracking app for kids to manage their daily tasks and earn allowa
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/chorechart.git
+   git clone https://github.com/dbreen/chorechart.git
    cd chorechart
    ```
 
