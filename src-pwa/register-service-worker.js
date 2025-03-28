@@ -27,8 +27,10 @@ register(process.env.SERVICE_WORKER_FILE, {
     // console.log('New content is downloading.')
   },
 
-  updated (/* registration */) {
-    // console.log('New content is available; please refresh.')
+  updated (registration) {
+    console.log('New content is available; refreshing...')
+    // Force refresh when new content is available
+    window.location.reload()
   },
 
   offline () {

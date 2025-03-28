@@ -1,4 +1,8 @@
 module.exports = function (ctx) {
+  // Read package.json to get current version
+  const packageJson = require('./package.json')
+  const version = packageJson.version
+  
   return {
     boot: [],
     css: ['app.scss'],
@@ -26,17 +30,33 @@ module.exports = function (ctx) {
         'QCheckbox',
         'QSeparator',
         'QBadge',
-        'QSpace'
+        'QSpace',
+        'QDialog',
+        'QToggle',
+        'QSpinner'
       ],
-      directives: ['Ripple'],
-      plugins: ['Notify', 'LocalStorage']
+      directives: ['Ripple', 'ClosePopup'],
+      plugins: ['Notify', 'LocalStorage', 'Dialog']
     },
     build: {
       vueRouterMode: 'hash',
-      publicPath: '/chorechart/'
+      publicPath: '/chorechart/',
+      env: {
+        PACKAGE_VERSION: version
+      }
     },
     pwa: {
-      workboxOptions: {},
+      // Disable service worker caching
+      workboxPluginMode: 'GenerateSW',
+      workboxOptions: {
+        skipWaiting: true,
+        clientsClaim: true,
+        runtimeCaching: [],
+        // Disable precaching
+        precacheManifest: [],
+        // No offline support
+        navigateFallback: null,
+      },
       manifest: {
         name: 'ChoreChart',
         short_name: 'ChoreChart',

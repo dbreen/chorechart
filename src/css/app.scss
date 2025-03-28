@@ -40,10 +40,11 @@ body.body--dark {
 
 .day-card {
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   
   &:hover {
     transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
   }
 }
 
@@ -53,4 +54,30 @@ body.body--dark {
 
 .incomplete-day {
   border-left: 5px solid #ff9800;
+}
+
+// Animation for rewards
+.reward {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.2);
+  }
+}
+
+// Enlarge earnings display on summary page
+.text-h3 {
+  transition: all 0.2s ease;
+  cursor: pointer;
+  
+  &:hover {
+    transform: scale(1.1);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+  }
+}
+
+// Make the relative positioning work for confetti
+.relative-position {
+  position: relative;
+  overflow: hidden;
 }

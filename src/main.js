@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { Quasar, Notify, LocalStorage, Dark } from 'quasar'
+import { Quasar, Notify, LocalStorage, Dark, Dialog } from 'quasar'
 
 // Import Quasar css
 import '@quasar/extras/material-icons/material-icons.css'
@@ -21,7 +21,8 @@ app.use(Quasar, {
   plugins: {
     Notify,
     LocalStorage,
-    Dark
+    Dark,
+    Dialog
   },
   config: {
     brand: {

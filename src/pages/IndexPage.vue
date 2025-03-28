@@ -2,11 +2,16 @@
   <q-page padding>
     <h5 class="q-mt-none q-mb-md">Weekly Chores</h5>
     
-    <div class="row q-col-gutter-md">
-      <div v-for="day in days" :key="day.name" class="col-12 col-sm-6 col-md-4">
+    <div v-if="isLoading" class="text-center q-pa-md">
+      <q-spinner color="primary" size="3em" />
+      <div class="q-mt-sm">Loading...</div>
+    </div>
+    
+    <div v-else class="row q-col-gutter-md">
+      <div v-for="(day, index) in days" :key="'day-' + index" class="col-12 col-sm-6 col-md-4">
         <q-card 
           :class="['day-card', day.allCompleted ? 'completed-day' : 'incomplete-day']"
-          @click="$router.push(`/day/${day.name.toLowerCase()}`)">
+          @click="goToDay(day.name)">
           <q-card-section>
             <div class="text-h6">{{ day.name }}</div>
             <div class="text-subtitle2">{{ day.allCompleted ? 'Completed' : 'Incomplete' }}</div>
@@ -14,10 +19,29 @@
           
           <q-card-section>
             <div class="text-body2">
-              <div><q-badge :color="day.dailiesCompleted ? 'positive' : 'grey'"/> Daily chores</div>
-              <div><q-badge :color="day.uniqueCompleted ? 'positive' : 'grey'"/> {{ day.uniqueChore }}</div>
-              <div v-if="day.bonusAvailable">
-                <q-badge :color="day.bonusCompleted ? 'positive' : 'amber'"/> Bonus: Dishwasher
+              <div class="row items-center">
+                <div class="col">
+                  <q-badge :color="day.dailiesCompleted ? 'positive' : 'grey'"/> Daily chores
+                </div>
+                <div class="col-auto" v-if="day.dailiesCompleted">
+                  <ChoreReward :completed="day.dailiesCompleted" type="daily" />
+                </div>
+              </div>
+              <div class="row items-center">
+                <div class="col">
+                  <q-badge :color="day.uniqueCompleted ? 'positive' : 'grey'"/> {{ day.uniqueChore }}
+                </div>
+                <div class="col-auto" v-if="day.uniqueCompleted">
+                  <ChoreReward :completed="day.uniqueCompleted" type="special" />
+                </div>
+              </div>
+              <div v-if="day.bonusAvailable" class="row items-center">
+                <div class="col">
+                  <q-badge :color="day.bonusCompleted ? 'positive' : 'amber'"/> Bonus: Dishwasher
+                </div>
+                <div class="col-auto" v-if="day.bonusCompleted">
+                  <ChoreReward :completed="day.bonusCompleted" type="bonus" />
+                </div>
               </div>
             </div>
           </q-card-section>
@@ -26,133 +50,120 @@
     </div>
     
     <div class="fixed-bottom-right q-ma-md">
-      <q-btn
-        round
-        color="secondary"
-        icon="summarize"
-        size="lg"
-        to="/summary"
-      />
+      <div class="column items-center">
+        <q-btn
+          class="q-mb-md"
+          round
+          color="secondary"
+          icon="summarize"
+          size="lg"
+          to="/summary"
+        />
+      </div>
     </div>
   </q-page>
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { defineComponent, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
+import ChoreReward from 'src/components/ChoreReward.vue'
+import NuclearReset from 'src/components/NuclearReset.vue'
+import { resetAppData } from 'src/utils/storage-reset'
 
 export default defineComponent({
   name: 'IndexPage',
   
+  components: {
+    ChoreReward,
+    NuclearReset
+  },
+  
   setup() {
+    // Core data refs
     const $q = useQuasar()
+    const router = useRouter()
+    const days = ref([])
+    const isLoading = ref(true)
     
-    // Get data from local storage or initialize if not present
-    const initializeWeek = () => {
-      if (!$q.localStorage.has('choreData')) {
-        const defaultData = {
-          days: [
-            {
-              name: 'Monday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Vacuum living room', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            },
-            {
-              name: 'Tuesday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Dust shelves', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            },
-            {
-              name: 'Wednesday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Sort laundry', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            },
-            {
-              name: 'Thursday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Wipe bathroom sink', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            },
-            {
-              name: 'Friday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Clean bedroom', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            }
-          ],
-          lastResetDate: new Date().toISOString()
-        }
-        
-        $q.localStorage.set('choreData', defaultData)
-        return defaultData
+    // Enable debug mode with URL parameter
+    const debugMode = ref(window.location.search.includes('debug=true'))
+    
+    // Format days data for display
+    const formatDaysData = (choreData) => {
+      if (!choreData || !choreData.days) {
+        console.error('Invalid choreData structure')
+        return []
       }
       
-      return $q.localStorage.getItem('choreData')
+      return choreData.days.map(day => ({
+        name: day.name,
+        uniqueChore: day.uniqueChore.name,
+        dailiesCompleted: day.dailiesCompleted,
+        uniqueCompleted: day.uniqueCompleted,
+        bonusCompleted: day.bonusCompleted,
+        bonusAvailable: day.bonusAvailable,
+        allCompleted: day.allCompleted
+      }))
     }
     
-    const choreData = initializeWeek()
+    // Load data from localStorage
+    const loadData = () => {
+      isLoading.value = true
+      
+      try {
+        // Try to get data from localStorage
+        let choreData = localStorage.getItem('choreData')
+        
+        // Parse the data if it exists
+        if (choreData) {
+          choreData = JSON.parse(choreData)
+        } else {
+          // If no data exists, initialize with default data
+          resetAppData()
+          choreData = JSON.parse(localStorage.getItem('choreData'))
+        }
+        
+        // Format the data for display
+        days.value = formatDaysData(choreData)
+      } catch (error) {
+        console.error('Error loading data:', error)
+        // If there's an error, reset the app data
+        resetAppData()
+        
+        // Try once more with the fresh data
+        try {
+          const choreData = JSON.parse(localStorage.getItem('choreData'))
+          days.value = formatDaysData(choreData)
+        } catch (e) {
+          // If still failing, show empty state
+          days.value = []
+          $q.notify({
+            message: 'Error loading data. Please refresh the page.',
+            color: 'negative'
+          })
+        }
+      }
+      
+      isLoading.value = false
+    }
     
-    // Format data for display
-    const days = choreData.days.map(day => ({
-      name: day.name,
-      uniqueChore: day.uniqueChore.name,
-      dailiesCompleted: day.dailiesCompleted,
-      uniqueCompleted: day.uniqueCompleted,
-      bonusCompleted: day.bonusCompleted,
-      bonusAvailable: day.bonusAvailable,
-      allCompleted: day.allCompleted
-    }))
+    // Navigate to day detail page
+    const goToDay = (dayName) => {
+      router.push(`/day/${dayName.toLowerCase()}`)
+    }
+    
+    // Load data when component mounts
+    onMounted(() => {
+      loadData()
+    })
     
     return {
-      days
+      days,
+      isLoading,
+      goToDay,
+      debugMode
     }
   }
 })

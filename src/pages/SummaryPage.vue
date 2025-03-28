@@ -44,6 +44,12 @@
               >
                 ${{ calculateDailyTotal(day) }}
               </q-badge>
+              <ChoreReward 
+                v-if="calculateDailyTotal(day) > 0" 
+                :completed="true" 
+                :type="dayRewardType(day)" 
+                class="q-ml-sm"
+              />
             </div>
           </q-item-section>
         </q-item>
@@ -52,11 +58,12 @@
     
     <!-- Weekly Totals -->
     <q-card class="bg-primary text-white">
-      <q-card-section>
+      <q-card-section class="relative-position">
+        <RewardConfetti :active="showConfetti" />
         <div class="text-h6">Total Earnings</div>
         <div class="row items-center">
           <div class="col">
-            <div class="text-h3">{{ totalEarned }}</div>
+            <div class="text-h3" @click="triggerConfetti">${{ totalEarned }}</div>
           </div>
           <div class="col-auto">
             <q-btn
@@ -75,22 +82,51 @@
         <div class="text-subtitle1">Bonus chores: ${{ bonusTotal }}</div>
       </q-card-section>
     </q-card>
+    
+    <!-- Reset Storage Button - Only visible when developer mode is on -->
+    <div class="q-mt-xl text-center">
+      <ResetStorage v-if="devMode" />
+      <div class="q-mt-sm">
+        <q-btn flat size="sm" color="grey" @click="toggleDevMode">{{ devMode ? 'Hide Developer Options' : '...' }}</q-btn>
+      </div>
+    </div>
+    
   </q-page>
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import ChoreReward from 'src/components/ChoreReward.vue'
+import RewardConfetti from 'src/components/RewardConfetti.vue'
+import ResetStorage from 'src/components/ResetStorage.vue'
 
 export default defineComponent({
+  components: {
+    ChoreReward,
+    RewardConfetti,
+    ResetStorage
+  },
   name: 'SummaryPage',
   
   setup() {
     const $q = useQuasar()
+    const showConfetti = ref(false)
+    const devMode = ref(false)
+    const days = ref([])
     
-    // Get data from local storage
-    const choreData = $q.localStorage.getItem('choreData')
-    const days = choreData.days
+    // Get fresh data from local storage
+    const loadData = () => {
+      const choreData = $q.localStorage.getItem('choreData')
+      if (choreData && choreData.days) {
+        days.value = choreData.days
+      }
+    }
+    
+    // Load data when component mounts
+    onMounted(() => {
+      loadData()
+    })
     
     const calculateDailyTotal = (day) => {
       let total = 0
@@ -100,17 +136,24 @@ export default defineComponent({
       return total
     }
     
+    // Determine which reward type to show based on what's completed
+    const dayRewardType = (day) => {
+      if (day.bonusAvailable && day.bonusCompleted) return 'bonus'
+      if (day.uniqueCompleted) return 'special'
+      return 'daily'
+    }
+    
     // Calculate weekly totals
     const dailiesTotal = computed(() => {
-      return days.filter(day => day.dailiesCompleted).length
+      return days.value.filter(day => day.dailiesCompleted).length
     })
     
     const uniqueTotal = computed(() => {
-      return days.filter(day => day.uniqueCompleted).length
+      return days.value.filter(day => day.uniqueCompleted).length
     })
     
     const bonusTotal = computed(() => {
-      return days.filter(day => day.bonusAvailable && day.bonusCompleted).length
+      return days.value.filter(day => day.bonusAvailable && day.bonusCompleted).length
     })
     
     const totalEarned = computed(() => {
@@ -118,7 +161,11 @@ export default defineComponent({
     })
     
     const resetWeek = () => {
-      days.forEach(day => {
+      // Get fresh data
+      const choreData = $q.localStorage.getItem('choreData')
+      if (!choreData || !choreData.days) return
+      
+      days.value.forEach(day => {
         // Reset daily chores
         day.dailyChores.forEach(chore => {
           chore.completed = false
@@ -149,6 +196,9 @@ export default defineComponent({
         message: 'Week has been reset successfully',
         color: 'positive'
       })
+      
+      // Reload the data
+      loadData()
     }
     
     const confirmReset = () => {
@@ -162,14 +212,43 @@ export default defineComponent({
       })
     }
     
+    const triggerConfetti = () => {
+      // Only show confetti if there are earnings
+      if (totalEarned.value > 0) {
+        showConfetti.value = true
+        
+        // Reset after animation completes
+        setTimeout(() => {
+          showConfetti.value = false
+        }, 3000)
+      }
+    }
+    
+    // Show confetti automatically on page load if there are earnings
+    if (totalEarned.value > 0) {
+      setTimeout(() => {
+        triggerConfetti()
+      }, 500)
+    }
+    
+    // Toggle developer mode
+    const toggleDevMode = () => {
+      devMode.value = !devMode.value
+    }
+    
     return {
       days,
       calculateDailyTotal,
+      dayRewardType,
       dailiesTotal,
       uniqueTotal,
       bonusTotal,
       totalEarned,
-      confirmReset
+      confirmReset,
+      showConfetti,
+      triggerConfetti,
+      devMode,
+      toggleDevMode
     }
   }
 })

@@ -43,7 +43,7 @@
 ### User Experience
 - [ ] Should there be a parental mode with password protection?
 - [x] How should we handle weekly reset? Automatic or manual? (Implemented manual reset)
-- [ ] Should we include visual rewards (stickers/emojis) for completed tasks?
+- [x] Should we include visual rewards (stickers/emojis) for completed tasks?
 - [x] What's the best way to indicate completed vs incomplete days visually? (Implemented color coding)
 
 ### Technical Implementation

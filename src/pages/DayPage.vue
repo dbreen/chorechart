@@ -28,9 +28,14 @@
           </div>
         </q-card-section>
         
-        <q-card-section>
-          <q-badge color="green" v-if="day.dailiesCompleted">Completed: $1 earned!</q-badge>
-          <q-badge color="grey" v-else>In progress: $0</q-badge>
+        <q-card-section class="row items-center">
+          <div class="col">
+            <q-badge color="green" v-if="day.dailiesCompleted">Completed: $1 earned!</q-badge>
+            <q-badge color="grey" v-else>In progress: $0</q-badge>
+          </div>
+          <div class="col-auto">
+            <ChoreReward :completed="day.dailiesCompleted" type="daily" />
+          </div>
         </q-card-section>
       </q-card>
       
@@ -50,9 +55,14 @@
           />
         </q-card-section>
         
-        <q-card-section>
-          <q-badge color="green" v-if="day.uniqueCompleted">Completed: $1 earned!</q-badge>
-          <q-badge color="grey" v-else>In progress: $0</q-badge>
+        <q-card-section class="row items-center">
+          <div class="col">
+            <q-badge color="green" v-if="day.uniqueCompleted">Completed: $1 earned!</q-badge>
+            <q-badge color="grey" v-else>In progress: $0</q-badge>
+          </div>
+          <div class="col-auto">
+            <ChoreReward :completed="day.uniqueCompleted" type="special" />
+          </div>
         </q-card-section>
       </q-card>
       
@@ -72,9 +82,14 @@
           />
         </q-card-section>
         
-        <q-card-section>
-          <q-badge color="green" v-if="day.bonusCompleted">Completed: $1 earned!</q-badge>
-          <q-badge color="grey" v-else>In progress: $0</q-badge>
+        <q-card-section class="row items-center">
+          <div class="col">
+            <q-badge color="green" v-if="day.bonusCompleted">Completed: $1 earned!</q-badge>
+            <q-badge color="grey" v-else>In progress: $0</q-badge>
+          </div>
+          <div class="col-auto">
+            <ChoreReward :completed="day.bonusCompleted" type="bonus" />
+          </div>
         </q-card-section>
       </q-card>
       
@@ -109,31 +124,46 @@
 </template>
 
 <script>
-import { defineComponent, ref, computed } from 'vue'
+import { defineComponent, ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import ChoreReward from 'src/components/ChoreReward.vue'
 
 export default defineComponent({
+  components: {
+    ChoreReward
+  },
   name: 'DayPage',
   
   setup() {
     const $q = useQuasar()
     const route = useRoute()
     const dayName = route.params.dayName
+    const choreData = ref(null)
+    const day = ref(null)
     
-    // Get data from local storage
-    const choreData = ref($q.localStorage.getItem('choreData'))
-    
-    // Find current day
-    const dayIndex = choreData.value.days.findIndex(
-      d => d.name.toLowerCase() === dayName
-    )
-    
-    if (dayIndex === -1) {
-      return { day: null }
-    }
-    
-    const day = ref(choreData.value.days[dayIndex])
+    // Load data on component mount
+    onMounted(() => {
+      // Get fresh data from local storage
+      choreData.value = $q.localStorage.getItem('choreData')
+      
+      if (!choreData.value || !choreData.value.days) {
+        day.value = null
+        return
+      }
+      
+      // Find current day
+      const dayIndex = choreData.value.days.findIndex(
+        d => d.name.toLowerCase() === dayName
+      )
+      
+      if (dayIndex === -1) {
+        day.value = null
+        return
+      }
+      
+      day.value = choreData.value.days[dayIndex]
+    })
     
     const saveData = () => {
       $q.localStorage.set('choreData', choreData.value)
