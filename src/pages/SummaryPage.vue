@@ -79,21 +79,24 @@
 </template>
 
 <script>
+// Change 1: Update imports
 import { defineComponent, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
+// Import chore data and helper
+import { potentialUniqueChores, getRandomUniqueChores } from '../data/chores.js' // Only need potential list and helper here
 
 export default defineComponent({
   name: 'SummaryPage',
   
   setup() {
     const $q = useQuasar()
-    const router = useRouter() // Get router instance
-    
-    // Get data from local storage
-    const choreData = $q.localStorage.getItem('choreData')
-    const days = choreData.days
-    
+    const router = useRouter()
+
+    // Non-reactive approach for display (as currently implemented)
+    const initialChoreData = $q.localStorage.getItem('choreData')
+    const daysForDisplay = initialChoreData.days // Use this for computed totals below
+
     const calculateDailyTotal = (day) => {
       let total = 0
       if (day.dailiesCompleted) total += 1
@@ -101,54 +104,60 @@ export default defineComponent({
       if (day.bonusAvailable && day.bonusCompleted) total += 1
       return total
     }
-    
-    // Calculate weekly totals
+    // Computed properties based on the initial data for display
     const dailiesTotal = computed(() => {
-      return days.filter(day => day.dailiesCompleted).length
+      return daysForDisplay.filter(day => day.dailiesCompleted).length
     })
-    
+
     const uniqueTotal = computed(() => {
-      return days.filter(day => day.uniqueCompleted).length
+      return daysForDisplay.filter(day => day.uniqueCompleted).length
     })
-    
+
     const bonusTotal = computed(() => {
-      return days.filter(day => day.bonusAvailable && day.bonusCompleted).length
+      return daysForDisplay.filter(day => day.bonusAvailable && day.bonusCompleted).length
     })
-    
+
     const totalEarned = computed(() => {
       return dailiesTotal.value + uniqueTotal.value + bonusTotal.value
-    })
-    
+
     const resetWeek = () => {
-      days.forEach(day => {
+      // Change 2: Fetch current data and update it
+      const currentChoreData = $q.localStorage.getItem('choreData');
+      const daysToReset = currentChoreData.days;
+
+      // Change 3: Get new random unique chores
+      const newUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysToReset.length);
+
+      daysToReset.forEach((day, index) => {
         // Reset daily chores
         day.dailyChores.forEach(chore => {
-          chore.completed = false
-        })
-        
-        // Reset unique chore
-        day.uniqueChore.completed = false
-        
+          chore.completed = false;
+        });
+
+        // Change 4: Assign new unique chore and reset it
+        day.uniqueChore.name = newUniqueChores[index];
+        day.uniqueChore.completed = false;
+
         // Reset bonus chore
-        day.bonusChore.completed = false
-        day.bonusAvailable = false
-        
+        day.bonusChore.completed = false;
+        day.bonusAvailable = false; // Reset availability as well
+
         // Reset status flags
-        day.dailiesCompleted = false
-        day.uniqueCompleted = false
-        day.bonusCompleted = false
-        day.allCompleted = false
-      })
-      
+        day.dailiesCompleted = false;
+        day.uniqueCompleted = false;
+        day.bonusCompleted = false;
+        day.allCompleted = false;
+      });
+
       // Update reset date
-      choreData.lastResetDate = new Date().toISOString()
-      
-      // Save to local storage
-      $q.localStorage.set('choreData', choreData)
-      
+      currentChoreData.lastResetDate = new Date().toISOString();
+
+      // Save updated data to local storage
+      $q.localStorage.set('choreData', currentChoreData);
+
       // Show confirmation
       $q.notify({
-        message: 'Week has been reset successfully',
+        message: 'Week has been reset successfully with new chores',
         color: 'positive'
       })
       
@@ -159,16 +168,16 @@ export default defineComponent({
     const confirmReset = () => {
       $q.dialog({
         title: 'Reset Week',
-        message: 'This will clear all chores and start a new week. Are you sure?',
+        message: 'This will clear all chores, assign new random special chores, and start a new week. Are you sure?', // Updated message
         cancel: true,
         persistent: true
       }).onOk(() => {
         resetWeek()
       })
     }
-    
+
     return {
-      days,
+      days: daysForDisplay, // Return the display data
       calculateDailyTotal,
       dailiesTotal,
       uniqueTotal,

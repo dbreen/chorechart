@@ -38,8 +38,11 @@
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+// Change 1: Update imports
+import { defineComponent, computed } from 'vue' // <-- Add computed
 import { useQuasar } from 'quasar'
+// Import chore data and helper
+import { standardDailyChores, potentialUniqueChores, bonusChore, getRandomUniqueChores } from '../data/chores.js'
 
 export default defineComponent({
   name: 'IndexPage',
@@ -47,112 +50,62 @@ export default defineComponent({
   setup() {
     const $q = useQuasar()
     
-    // Get data from local storage or initialize if not present
     const initializeWeek = () => {
       if (!$q.localStorage.has('choreData')) {
+        // Change 2: Build defaultData dynamically
+        const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+        const selectedUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysOfWeek.length);
+
         const defaultData = {
-          days: [
-            {
-              name: 'Monday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Vacuum living room', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
+          days: daysOfWeek.map((dayName, index) => ({
+            name: dayName,
+            // Deep copy standard chores, add completed status
+            dailyChores: JSON.parse(JSON.stringify(standardDailyChores)).map(chore => ({ ...chore, completed: false })),
+            // Assign a unique chore from the selected list
+            uniqueChore: {
+              id: 4, // Keep a consistent ID structure if needed, or remove if name is enough
+              name: selectedUniqueChores[index],
+              completed: false
             },
-            {
-              name: 'Tuesday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Dust shelves', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
+            // Use the imported bonus chore definition
+            bonusChore: {
+              id: bonusChore.id,
+              name: bonusChore.name,
+              completed: false,
+              available: false // Keep availability logic separate
             },
-            {
-              name: 'Wednesday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Sort laundry', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            },
-            {
-              name: 'Thursday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Wipe bathroom sink', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            },
-            {
-              name: 'Friday',
-              dailyChores: [
-                { id: 1, name: 'Empty backpack', completed: false },
-                { id: 2, name: 'Dishes in sink', completed: false },
-                { id: 3, name: 'Change dog water', completed: false }
-              ],
-              uniqueChore: { id: 4, name: 'Clean bedroom', completed: false },
-              bonusChore: { id: 5, name: 'Empty dishwasher', completed: false, available: false },
-              dailiesCompleted: false,
-              uniqueCompleted: false,
-              bonusCompleted: false,
-              bonusAvailable: false,
-              allCompleted: false
-            }
-          ],
+            // Initialize status flags
+            dailiesCompleted: false,
+            uniqueCompleted: false,
+            bonusCompleted: false,
+            bonusAvailable: false, // Controlled on DayPage
+            allCompleted: false
+          })),
           lastResetDate: new Date().toISOString()
-        }
-        
-        $q.localStorage.set('choreData', defaultData)
-        return defaultData
+        };
+
+        $q.localStorage.set('choreData', defaultData);
+        return defaultData;
       }
-      
-      return $q.localStorage.getItem('choreData')
+
+      return $q.localStorage.getItem('choreData');
     }
-    
-    const choreData = initializeWeek()
-    
-    // Format data for display
-    const days = choreData.days.map(day => ({
+
+    const choreData = initializeWeek();
+
+    // Change 3: Update how 'days' for the template is derived (make computed)
+    const days = computed(() => choreData.days.map(day => ({
       name: day.name,
-      uniqueChore: day.uniqueChore.name,
+      uniqueChore: day.uniqueChore.name, // Ensure this reads the name correctly
       dailiesCompleted: day.dailiesCompleted,
       uniqueCompleted: day.uniqueCompleted,
       bonusCompleted: day.bonusCompleted,
       bonusAvailable: day.bonusAvailable,
       allCompleted: day.allCompleted
-    }))
-    
+    })))
+
     return {
-      days
+      days // Return the computed property
     }
   }
 })
