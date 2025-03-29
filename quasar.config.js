@@ -29,7 +29,7 @@ module.exports = function (ctx) {
         'QSpace'
       ],
       directives: ['Ripple'],
-      plugins: ['Notify', 'LocalStorage']
+      plugins: ['Notify', 'LocalStorage', 'Dialog']
     },
     build: {
       vueRouterMode: 'hash',
