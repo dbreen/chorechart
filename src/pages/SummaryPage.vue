@@ -81,12 +81,14 @@
 <script>
 import { defineComponent, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
 
 export default defineComponent({
   name: 'SummaryPage',
   
   setup() {
     const $q = useQuasar()
+    const router = useRouter() // Get router instance
     
     // Get data from local storage
     const choreData = $q.localStorage.getItem('choreData')
@@ -149,6 +151,9 @@ export default defineComponent({
         message: 'Week has been reset successfully',
         color: 'positive'
       })
+      
+      // Navigate home
+      router.push('/')
     }
     
     const confirmReset = () => {
