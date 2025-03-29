@@ -80,9 +80,10 @@
 
 <script>
 // Change 1: Update imports
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, onMounted, onUnmounted, ref } from 'vue' // <-- Add onMounted, onUnmounted, ref
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
+import confetti from 'canvas-confetti' // <-- Add confetti import
 // Import chore data and helper
 import { potentialUniqueChores, getRandomUniqueChores } from '../data/chores.js' // Only need potential list and helper here
 
@@ -92,6 +93,9 @@ export default defineComponent({
   setup() {
     const $q = useQuasar()
     const router = useRouter()
+
+    // Change 2: Add ref for interval ID
+    const confettiIntervalId = ref(null)
 
     // Non-reactive approach for display (as currently implemented)
     const initialChoreData = $q.localStorage.getItem('choreData')
