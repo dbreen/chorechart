@@ -1,10 +1,12 @@
 {
   "name": "chorechart",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "quasar dev",
     "build": "quasar build -m pwa",
+    "clean": "rm -rf node_modules/.cache && rm -rf .quasar/client-entry.js && rm -rf dist",
+    "rebuild": "npm run clean && npm run build",
     "lint": "eslint --ext .js,.vue src",
     "deploy": "rsync -avz --delete dist/pwa/ danbreen.net:danbreen.net/chorechart/"
   },

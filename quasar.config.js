@@ -26,17 +26,25 @@ module.exports = function (ctx) {
         'QCheckbox',
         'QSeparator',
         'QBadge',
-        'QSpace'
+        'QSpace',
+        'QDialog'
       ],
-      directives: ['Ripple'],
-      plugins: ['Notify', 'LocalStorage']
+      directives: ['Ripple', 'ClosePopup'],
+      plugins: ['Notify', 'LocalStorage', 'Dialog']
     },
     build: {
       vueRouterMode: 'hash',
-      publicPath: '/chorechart/'
+      publicPath: '/chorechart/',
+      env: {
+        APP_VERSION: require('./package.json').version
+      }
     },
     pwa: {
-      workboxOptions: {},
+      // Add version number
+      workboxOptions: {
+        skipWaiting: true,
+        clientsClaim: true,
+      },
       manifest: {
         name: 'ChoreChart',
         short_name: 'ChoreChart',
