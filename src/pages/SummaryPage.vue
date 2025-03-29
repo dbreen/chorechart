@@ -56,7 +56,7 @@
         <div class="text-h6">Total Earnings</div>
         <div class="row items-center">
           <div class="col">
-            <div class="text-h3">{{ totalEarned }}</div>
+            <div class="text-h3">${{ totalEarned }}</div>
           </div>
           <div class="col-auto">
             <q-btn
