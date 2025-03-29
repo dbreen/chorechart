@@ -113,7 +113,7 @@
                 v-model="chore.completed"
                 :label="chore.name"
                 color="info"
-                @update:model-value="saveData" <!-- Just save on completion toggle -->
+                @update:model-value="updateExtraChoreStatus" <!-- Use specific handler -->
               />
             </div>
             <div class="col-auto" v-if="isDadMode">
