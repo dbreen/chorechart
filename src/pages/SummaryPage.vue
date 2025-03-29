@@ -123,7 +123,30 @@ export default defineComponent({
 
     const totalEarned = computed(() => {
       return dailiesTotal.value + uniqueTotal.value + bonusTotal.value
-    }) // <-- ADDED THIS CLOSING BRACE AND PARENTHESIS
+    })
+
+    // Define confetti function for rain effect
+    const launchConfettiRain = () => {
+      confetti({
+        particleCount: 50,
+        angle: 90,
+        spread: 55,
+        origin: { y: 0 },
+        disableForReducedMotion: true
+      });
+    }
+
+    // Add onMounted hook to start confetti
+    onMounted(() => {
+      confettiIntervalId.value = setInterval(launchConfettiRain, 800); // Start rain
+    })
+
+    // Add onUnmounted hook to stop confetti
+    onUnmounted(() => {
+      if (confettiIntervalId.value) {
+        clearInterval(confettiIntervalId.value); // Stop rain
+      }
+    })
 
     const resetWeek = () => {
       // Change 2: Fetch current data and update it
