@@ -112,6 +112,7 @@
 import { defineComponent, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import confetti from 'canvas-confetti' // <-- ADD THIS IMPORT
 
 export default defineComponent({
   name: 'DayPage',
@@ -138,22 +139,49 @@ export default defineComponent({
     const saveData = () => {
       $q.localStorage.set('choreData', choreData.value)
     }
+
+    // Helper function for confetti effect
+    const triggerConfetti = () => {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 } // Trigger from slightly above center
+      });
+    }
     
     const updateDailyStatus = () => {
+      // Store previous state
+      const wasCompleted = day.value.dailiesCompleted;
       // Check if all daily chores are completed
       day.value.dailiesCompleted = day.value.dailyChores.every(chore => chore.completed)
+      // Trigger confetti if status changed to completed
+      if (day.value.dailiesCompleted && !wasCompleted) {
+        triggerConfetti(); // <-- Trigger confetti
+      }
       updateAllCompleted()
       saveData()
     }
     
     const updateUniqueStatus = () => {
+      // Store previous state
+      const wasCompleted = day.value.uniqueCompleted;
       day.value.uniqueCompleted = day.value.uniqueChore.completed
+      // Trigger confetti if status changed to completed
+      if (day.value.uniqueCompleted && !wasCompleted) {
+        triggerConfetti(); // <-- Trigger confetti
+      }
       updateAllCompleted()
       saveData()
     }
     
     const updateBonusStatus = () => {
+      // Store previous state
+      const wasCompleted = day.value.bonusCompleted;
       day.value.bonusCompleted = day.value.bonusChore.completed
+      // Trigger confetti if status changed to completed AND bonus is available
+      if (day.value.bonusCompleted && !wasCompleted && day.value.bonusAvailable) {
+        triggerConfetti(); // <-- Trigger confetti
+      }
       updateAllCompleted()
       saveData()
     }
