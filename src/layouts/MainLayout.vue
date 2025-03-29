@@ -6,7 +6,12 @@
           ChoreChart
         </q-toolbar-title>
         <q-space />
-        <q-btn flat round dense :icon="darkMode ? 'light_mode' : 'dark_mode'" @click="toggleDarkMode" />
+        <!-- CHANGE 1: Update button icon condition and click handler -->
+        <q-btn
+          flat round dense
+          :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+          @click="$q.dark.toggle()"
+        />
         <q-btn flat round dense icon="home" to="/" />
         <q-btn flat round dense icon="summarize" to="/summary" />
       </q-toolbar>
@@ -19,29 +24,33 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue'
-import { Dark } from 'quasar'
+// CHANGE 2: Update imports - remove ref, onMounted; add useQuasar, watch
+import { defineComponent, watch } from 'vue'
+import { useQuasar } from 'quasar' // <-- Import useQuasar
+// Remove Dark import if no longer needed directly: import { Dark } from 'quasar'
 
 export default defineComponent({
   name: 'MainLayout',
-  
+
   setup() {
-    const darkMode = ref(Dark.isActive)
-    
-    const toggleDarkMode = () => {
-      darkMode.value = !darkMode.value
-      Dark.set(darkMode.value)
-      localStorage.setItem('darkMode', darkMode.value)
-    }
-    
-    onMounted(() => {
-      // Ensure the dark mode ref matches the actual state
-      darkMode.value = Dark.isActive
+    // CHANGE 3: Get $q instance
+    const $q = useQuasar()
+
+    // CHANGE 4: Remove darkMode ref, toggleDarkMode function, onMounted hook
+    // const darkMode = ref(Dark.isActive) // <-- REMOVE
+    // const toggleDarkMode = () => { ... } // <-- REMOVE
+    // onMounted(() => { ... }) // <-- REMOVE
+
+    // CHANGE 5: Add watcher to save preference
+    watch(() => $q.dark.isActive, (isDark) => {
+      const preference = isDark ? 'dark' : 'light'
+      // Use the same key as in the boot file
+      $q.localStorage.set('darkModePreference', preference)
     })
-    
+
+    // CHANGE 6: Return $q
     return {
-      darkMode,
-      toggleDarkMode
+      $q // <-- Return $q for template access
     }
   }
 })

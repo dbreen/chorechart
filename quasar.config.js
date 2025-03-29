@@ -1,6 +1,8 @@
 module.exports = function (ctx) {
   return {
-    boot: [],
+    boot: [
+      'dark-mode' // <-- ADD THIS LINE
+    ],
     css: ['app.scss'],
     extras: [
       'material-icons'
