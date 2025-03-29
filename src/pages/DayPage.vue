@@ -5,6 +5,10 @@
         <div class="col">
           <h5 class="q-mt-none q-mb-md">{{ day.name }}</h5>
         </div>
+        <!-- Dad Mode Toggle -->
+        <div class="col-auto q-mr-sm">
+          <q-toggle v-model="isDadMode" label="Dad Mode" color="red" />
+        </div>
         <div class="col-auto">
           <q-btn flat round icon="arrow_back" color="primary" to="/" />
         </div>
@@ -40,16 +44,33 @@
           <div class="text-h6">Special Chore</div>
           <div class="text-subtitle2">Complete to earn $1</div>
         </q-card-section>
-        
+
         <q-card-section>
+          <!-- Show Input in Dad Mode, Checkbox otherwise -->
+          <q-input
+            v-if="isDadMode"
+            v-model="day.uniqueChore.name"
+            label="Edit Special Chore Name"
+            dense
+            @blur="saveData" <!-- Save when input loses focus -->
+          />
           <q-checkbox
+            v-else
             v-model="day.uniqueChore.completed"
             :label="day.uniqueChore.name"
             color="purple"
             @update:model-value="updateUniqueStatus"
           />
+          <!-- Checkbox still needed in Dad Mode for completion -->
+          <q-checkbox
+             v-if="isDadMode"
+             v-model="day.uniqueChore.completed"
+             label="Completed"
+             color="purple"
+             @update:model-value="updateUniqueStatus"
+           />
         </q-card-section>
-        
+
         <q-card-section>
           <q-badge color="green" v-if="day.uniqueCompleted">Completed: $1 earned!</q-badge>
           <q-badge color="grey" v-else>In progress: $0</q-badge>
@@ -77,8 +98,49 @@
           <q-badge color="grey" v-else>In progress: $0</q-badge>
         </q-card-section>
       </q-card>
-      
-      <!-- Toggle for bonus chore availability (parent mode feature) -->
+
+      <!-- Extra Chores Section -->
+      <q-card v-if="(day.extraChores && day.extraChores.length > 0) || isDadMode" class="chore-card extra-chore q-mt-md">
+        <q-card-section>
+          <div class="text-h6">Extra Chores</div>
+          <div class="text-subtitle2">Ad-hoc tasks (worth $0)</div>
+        </q-card-section>
+
+        <q-card-section v-if="day.extraChores && day.extraChores.length > 0">
+          <div v-for="(chore, index) in day.extraChores" :key="chore.id" class="row items-center q-mb-sm">
+            <div class="col">
+              <q-checkbox
+                v-model="chore.completed"
+                :label="chore.name"
+                color="info"
+                @update:model-value="saveData" <!-- Just save on completion toggle -->
+              />
+            </div>
+            <div class="col-auto" v-if="isDadMode">
+              <q-btn
+                flat round dense
+                icon="delete"
+                color="negative"
+                size="sm"
+                @click="deleteExtraChore(index)"
+              />
+            </div>
+          </div>
+        </q-card-section>
+
+        <!-- Add Extra Chore Button (only in Dad Mode) -->
+        <q-card-actions v-if="isDadMode" align="right">
+          <q-btn
+            label="Add Extra Chore"
+            color="secondary"
+            icon="add"
+            @click="addExtraChore"
+          />
+        </q-card-actions>
+      </q-card>
+
+
+      <!-- Toggle for bonus chore availability -->
       <div class="q-mt-lg">
         <q-toggle
           v-model="day.bonusAvailable"
@@ -135,7 +197,8 @@ export default defineComponent({
     }
     
     const day = ref(choreData.value.days[dayIndex])
-    
+    const isDadMode = ref(false) // <-- Add Dad Mode state
+
     const saveData = () => {
       $q.localStorage.set('choreData', choreData.value)
     }
@@ -173,7 +236,7 @@ export default defineComponent({
       updateAllCompleted()
       saveData()
     }
-    
+
     const updateBonusStatus = () => {
       // Store previous state
       const wasCompleted = day.value.bonusCompleted;
@@ -205,12 +268,22 @@ export default defineComponent({
     
     return {
       day,
+      isDadMode, // <-- Expose Dad Mode state
       saveData,
       updateDailyStatus,
       updateUniqueStatus,
       updateBonusStatus,
-      calculateDailyTotal
+      calculateDailyTotal,
+      addExtraChore, // <-- Expose add function
+      deleteExtraChore // <-- Expose delete function
     }
   }
 })
 </script>
+
+<style lang="scss" scoped>
+/* Add some styling if needed */
+.extra-chore {
+  border-left: 5px solid $info; /* Use Quasar info color */
+}
+</style>

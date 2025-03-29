@@ -19,6 +19,10 @@
               <div v-if="day.bonusAvailable">
                 <q-badge :color="day.bonusCompleted ? 'positive' : 'amber'"/> Bonus: Dishwasher
               </div>
+              <!-- Add indicator for extra chores -->
+              <div v-if="day.extraChoresCount > 0">
+                <q-badge color="info"/> {{ day.extraChoresCount }} Extra Chore(s)
+              </div>
             </div>
           </q-card-section>
         </q-card>
@@ -79,7 +83,8 @@ export default defineComponent({
             uniqueCompleted: false,
             bonusCompleted: false,
             bonusAvailable: false, // Controlled on DayPage
-            allCompleted: false
+            allCompleted: false,
+            extraChores: [] // <-- ADD THIS LINE
           })),
           lastResetDate: new Date().toISOString()
         };
@@ -101,7 +106,8 @@ export default defineComponent({
       uniqueCompleted: day.uniqueCompleted,
       bonusCompleted: day.bonusCompleted,
       bonusAvailable: day.bonusAvailable,
-      allCompleted: day.allCompleted
+      allCompleted: day.allCompleted,
+      extraChoresCount: day.extraChores ? day.extraChores.length : 0 // <-- ADD THIS (check if exists)
     })))
 
     return {

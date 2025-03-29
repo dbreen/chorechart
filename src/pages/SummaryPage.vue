@@ -19,8 +19,16 @@
         <q-item v-for="day in days" :key="day.name">
           <q-item-section>
             <q-item-label>{{ day.name }}</q-item-label>
+            <!-- Add section for extra chores -->
+            <q-item-label caption v-if="day.extraChores && day.extraChores.length > 0">
+              Extra:
+              <span v-for="(extra, index) in day.extraChores" :key="extra.id">
+                <q-icon :name="extra.completed ? 'check_box' : 'check_box_outline_blank'" size="xs" :color="extra.completed ? 'positive' : 'grey'" />
+                {{ extra.name }}{{ index < day.extraChores.length - 1 ? '; ' : '' }}
+              </span>
+            </q-item-label>
           </q-item-section>
-          
+
           <q-item-section side>
             <div class="row items-center">
               <q-badge
@@ -169,6 +177,9 @@ export default defineComponent({
         // Reset bonus chore
         day.bonusChore.completed = false;
         day.bonusAvailable = false; // Reset availability as well
+
+        // Clear extra chores
+        day.extraChores = []; // <-- ADD THIS LINE
 
         // Reset status flags
         day.dailiesCompleted = false;
