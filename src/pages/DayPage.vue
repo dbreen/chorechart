@@ -281,6 +281,11 @@ export default defineComponent({
       day.value.extraChores.splice(index, 1);
       saveData();
     }
+
+    const updateExtraChoreStatus = () => {
+      // Currently, just save. Can add more logic later if needed.
+      saveData();
+    }
     
     const updateAllCompleted = () => {
       // Extra chores don't count towards 'allCompleted' for the day's main status
@@ -309,7 +314,8 @@ export default defineComponent({
       updateBonusStatus,
       calculateDailyTotal,
       addExtraChore, // <-- Expose add function
-      deleteExtraChore // <-- Expose delete function
+      deleteExtraChore, // <-- Expose delete function
+      updateExtraChoreStatus // <-- Expose new function
     }
   }
 })
