@@ -41,21 +41,24 @@
 ## Questions/Ideas to Consider
 
 ### User Experience
-- [ ] Should there be a parental mode with password protection?
 - [x] How should we handle weekly reset? Automatic or manual? (Implemented manual reset)
-- [ ] Should we include visual rewards (stickers/emojis) for completed tasks?
+- [ ] Add parental mode with simple PIN protection
+- [ ] Implement visual rewards (stickers/emojis/animations)
 - [x] What's the best way to indicate completed vs incomplete days visually? (Implemented color coding)
 
 ### Technical Implementation
 - [ ] Do we need user accounts or is this a single-user app?
 - [ ] Should we consider Firebase for optional cloud backup?
-- [ ] How should we handle data migration if app is updated?
+- [ ] Add data versioning/migration system
+- [ ] Implement localStorage backup/restore
+- [ ] Add basic error logging
 - [ ] Should we implement push notifications as reminders?
 
 ### Content and Customization
 - [ ] Allow parents to change reward amounts?
 - [ ] Provide predefined chore templates or start from scratch?
-- [ ] Include images/icons for each chore type?
+- [ ] Create icon set for chore types
+- [ ] Add celebration animations
 - [x] Allow customizing app color themes? (Implemented dark mode)
 
 ### Future Growth

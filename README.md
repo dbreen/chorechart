@@ -22,7 +22,7 @@ A simple chore tracking app for kids to manage their daily tasks and earn allowa
 2. Each day has a unique special chore (worth $1)
 3. Bonus chore when available (dishwasher - worth $1)
 4. Weekly summary shows total earnings for easy tracking
-5. Reset feature for starting a new week
+5. Manual reset feature for starting a new week (parent-controlled)
 
 ## Technology Stack
 
