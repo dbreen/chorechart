@@ -248,8 +248,42 @@ export default defineComponent({
       updateAllCompleted()
       saveData()
     }
+
+    // Add function to add extra chore
+    const addExtraChore = () => {
+      $q.dialog({
+        title: 'Add Extra Chore',
+        message: 'Enter the name for the new chore:',
+        prompt: {
+          model: '',
+          type: 'text'
+        },
+        cancel: true,
+        persistent: true
+      }).onOk(name => {
+        if (name && name.trim().length > 0) {
+          // Ensure extraChores array exists
+          if (!Array.isArray(day.value.extraChores)) {
+            day.value.extraChores = [];
+          }
+          day.value.extraChores.push({
+            id: Date.now(), // Simple unique ID
+            name: name.trim(),
+            completed: false
+          });
+          saveData();
+        }
+      });
+    }
+
+    // Add function to delete extra chore
+    const deleteExtraChore = (index) => {
+      day.value.extraChores.splice(index, 1);
+      saveData();
+    }
     
     const updateAllCompleted = () => {
+      // Extra chores don't count towards 'allCompleted' for the day's main status
       // A day is considered fully completed if all required chores are done
       // Bonus is only required if it's available
       const requiredCompleted = day.value.dailiesCompleted && day.value.uniqueCompleted
