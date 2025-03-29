@@ -81,6 +81,7 @@
         <div class="text-subtitle1">Daily chores: ${{ dailiesTotal }}</div>
         <div class="text-subtitle1">Special chores: ${{ uniqueTotal }}</div>
         <div class="text-subtitle1">Bonus chores: ${{ bonusTotal }}</div>
+        <div class="text-subtitle1">Extra chores: ${{ extraTotal }}</div>
       </q-card-section>
     </q-card>
   </q-page>
@@ -114,8 +115,17 @@ export default defineComponent({
       if (day.dailiesCompleted) total += 1
       if (day.uniqueCompleted) total += 1
       if (day.bonusAvailable && day.bonusCompleted) total += 1
+      
+      // Add earnings from extra chores
+      if (day.extraChores && day.extraChores.length > 0) {
+        day.extraChores.forEach(chore => {
+          if (chore.completed) total += 1
+        })
+      }
+      
       return total
     }
+    
     // Computed properties based on the initial data for display
     const dailiesTotal = computed(() => {
       return daysForDisplay.filter(day => day.dailiesCompleted).length
@@ -128,9 +138,22 @@ export default defineComponent({
     const bonusTotal = computed(() => {
       return daysForDisplay.filter(day => day.bonusAvailable && day.bonusCompleted).length
     })
+    
+    // Add extra chores total computation
+    const extraTotal = computed(() => {
+      let total = 0
+      daysForDisplay.forEach(day => {
+        if (day.extraChores && day.extraChores.length > 0) {
+          day.extraChores.forEach(chore => {
+            if (chore.completed) total += 1
+          })
+        }
+      })
+      return total
+    })
 
     const totalEarned = computed(() => {
-      return dailiesTotal.value + uniqueTotal.value + bonusTotal.value
+      return dailiesTotal.value + uniqueTotal.value + bonusTotal.value + extraTotal.value
     })
 
     // Define confetti function for rain effect
@@ -221,6 +244,7 @@ export default defineComponent({
       dailiesTotal,
       uniqueTotal,
       bonusTotal,
+      extraTotal,
       totalEarned,
       confirmReset
     }

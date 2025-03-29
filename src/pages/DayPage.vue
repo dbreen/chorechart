@@ -52,8 +52,8 @@
             v-model="day.uniqueChore.name"
             label="Edit Special Chore Name"
             dense
-            @blur="saveData" <!-- Save when input loses focus -->
-          />
+            @blur="saveData" 
+          /> <!-- Save when input loses focus -->
           <q-checkbox
             v-else
             v-model="day.uniqueChore.completed"
@@ -76,7 +76,17 @@
           <q-badge color="grey" v-else>In progress: $0</q-badge>
         </q-card-section>
       </q-card>
-      
+
+      <!-- Toggle for bonus chore availability -->
+      <div class="q-mt-lg">
+        <q-toggle
+          v-model="day.bonusAvailable"
+          label="Dishwasher needs emptying today"
+          color="amber"
+          @update:model-value="saveData"
+        />
+      </div>
+
       <!-- Bonus Chore (if available) -->
       <q-card v-if="day.bonusAvailable" class="chore-card bonus-chore q-mt-md">
         <q-card-section>
@@ -103,18 +113,26 @@
       <q-card v-if="(day.extraChores && day.extraChores.length > 0) || isDadMode" class="chore-card extra-chore q-mt-md">
         <q-card-section>
           <div class="text-h6">Extra Chores</div>
-          <div class="text-subtitle2">Ad-hoc tasks (worth $0)</div>
+          <div class="text-subtitle2">Each completed task earns $1</div>
         </q-card-section>
 
         <q-card-section v-if="day.extraChores && day.extraChores.length > 0">
           <div v-for="(chore, index) in day.extraChores" :key="chore.id" class="row items-center q-mb-sm">
             <div class="col">
-              <q-checkbox
-                v-model="chore.completed"
-                :label="chore.name"
-                color="info"
-                @update:model-value="updateExtraChoreStatus" <!-- Use specific handler -->
-              />
+              <div class="row w-100 items-center">
+                <div class="col">
+                  <q-checkbox
+                    v-model="chore.completed"
+                    :label="chore.name"
+                    color="info"
+                    @update:model-value="(val) => updateExtraChoreStatus(val)"
+                  /> <!-- Pass completion status -->
+                </div>
+                <div class="col-auto">
+                  <q-badge color="green" v-if="chore.completed">$1 earned!</q-badge>
+                  <q-badge color="grey" v-else>$0</q-badge>
+                </div>
+              </div>
             </div>
             <div class="col-auto" v-if="isDadMode">
               <q-btn
@@ -139,17 +157,6 @@
         </q-card-actions>
       </q-card>
 
-
-      <!-- Toggle for bonus chore availability -->
-      <div class="q-mt-lg">
-        <q-toggle
-          v-model="day.bonusAvailable"
-          label="Dishwasher needs emptying today"
-          color="amber"
-          @update:model-value="saveData"
-        />
-      </div>
-      
       <!-- Daily Summary -->
       <q-card class="q-mt-lg">
         <q-card-section>
@@ -282,8 +289,12 @@ export default defineComponent({
       saveData();
     }
 
-    const updateExtraChoreStatus = () => {
-      // Currently, just save. Can add more logic later if needed.
+    const updateExtraChoreStatus = (isCompleted) => {
+      // Only trigger confetti if it was just completed (not when unchecked)
+      if (isCompleted) {
+        triggerConfetti(); // Celebrate with confetti!
+      }
+      
       saveData();
     }
     
@@ -302,6 +313,14 @@ export default defineComponent({
       if (day.value.dailiesCompleted) total += 1
       if (day.value.uniqueCompleted) total += 1
       if (day.value.bonusAvailable && day.value.bonusCompleted) total += 1
+      
+      // Add $1 for each completed extra chore
+      if (day.value.extraChores && day.value.extraChores.length > 0) {
+        day.value.extraChores.forEach(chore => {
+          if (chore.completed) total += 1
+        })
+      }
+      
       return total
     }
     
@@ -324,6 +343,6 @@ export default defineComponent({
 <style lang="scss" scoped>
 /* Add some styling if needed */
 .extra-chore {
-  border-left: 5px solid $info; /* Use Quasar info color */
+  border-left: 5px solid var(--q-info); /* Use Quasar info color */
 }
 </style>
