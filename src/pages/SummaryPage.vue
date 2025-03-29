@@ -119,6 +119,7 @@ export default defineComponent({
 
     const totalEarned = computed(() => {
       return dailiesTotal.value + uniqueTotal.value + bonusTotal.value
+    }) // <-- ADDED THIS CLOSING BRACE AND PARENTHESIS
 
     const resetWeek = () => {
       // Change 2: Fetch current data and update it
