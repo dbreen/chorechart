@@ -21,6 +21,7 @@
           <div class="text-h6">Add New Chore</div>
           <q-form @submit="addChore" class="q-gutter-md" ref="formRef">
             <q-input
+              ref="nameInput"
               v-model="newChore.name"
               label="Chore Name"
               :rules="[
@@ -106,7 +107,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted, inject } from 'vue'
+import { defineComponent, ref, onMounted, inject, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { getStandardChores, createChore, deleteChore } from 'src/data/chores'
 
@@ -118,6 +119,7 @@ export default defineComponent({
     const userSession = inject('userSession')
     
     const formRef = ref(null)
+    const nameInput = ref(null)
     const chores = ref([])
     const loading = ref(false)
     const deletingId = ref(null)
@@ -171,6 +173,11 @@ export default defineComponent({
         
         await loadChores() // Refresh list
         
+        // Focus the name input after successful creation
+        await nextTick()
+        nameInput.value.resetValidation()
+        nameInput.value.focus()
+        
         $q.notify({
           type: 'positive',
           message: 'Chore added successfully!'
@@ -222,6 +229,7 @@ export default defineComponent({
     
     return {
       formRef,
+      nameInput,
       chores,
       loading,
       newChore,
