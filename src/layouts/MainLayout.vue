@@ -8,76 +8,66 @@
         </q-toolbar-title>
         <q-space />
 
-        <!-- Login/Logout Section -->
-        <div v-if="!userSession" class="q-gutter-sm row items-center no-wrap">
-          <q-input
-            dark dense standout
-            v-model="email"
-            label="Email"
-            type="email"
-            class="q-ml-sm"
-            bg-color="primary"
-            label-color="white"
-            input-style="color: white;"
-            @keyup.enter="handleLogin"
-            style="min-width: 200px;"
-            :readonly="otpSent"
-          />
-          <q-input
-            v-if="otpSent"
-            dark dense standout
-            v-model="otpCode"
-            label="OTP Code"
-            type="text"
-            class="q-ml-sm"
-            bg-color="primary"
-            label-color="white"
-            input-style="color: white;"
-            @keyup.enter="handleLogin"
-            style="min-width: 200px;"
-          />
+        <!-- Only show dark mode toggle and nav when logged in -->
+        <template v-if="userSession">
+          <q-btn flat round dense icon="home" to="/" />
+          <q-btn flat round dense icon="summarize" to="/summary" />
           <q-btn
             flat dense
-            :label="otpSent ? 'Verify' : 'Send OTP'"
-            @click="handleLogin"
+            label="Logout"
+            @click="handleLogout"
             :loading="loading"
+            class="q-ml-sm"
           />
-        </div>
-        <q-btn
-          v-else
-          flat dense
-          label="Logout"
-          @click="handleLogout"
-          :loading="loading"
-        />
+        </template>
 
-        <!-- Dark Mode Toggle -->
+        <!-- Dark Mode Toggle (always visible) -->
         <q-btn
           flat round dense
           :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
           @click="$q.dark.toggle()"
           class="q-ml-md"
         />
-
-        <!-- Navigation Buttons (only shown if logged in) -->
-        <template v-if="userSession">
-          <q-btn flat round dense icon="home" to="/" />
-          <q-btn flat round dense icon="summarize" to="/summary" />
-        </template>
       </q-toolbar>
     </q-header>
 
-    <!-- Page Container (conditionally rendered) -->
-    <q-page-container v-if="userSession">
-      <router-view />
-    </q-page-container>
-    <q-page-container v-else>
-       <q-page padding class="flex flex-center text-center">
-         <div>
-           <div class="text-h5">Please log in</div>
-           <div class="q-mt-md">Enter your email above and click Login to receive a magic link.</div>
-         </div>
-       </q-page>
+    <q-page-container>
+      <router-view v-if="userSession" />
+      <div v-else class="flex flex-center" style="height: 100vh">
+        <q-card class="q-pa-xl" style="width: 100%; max-width: 400px">
+          <q-card-section class="text-center">
+            <div class="text-h4 q-mb-md">Welcome to ChoreChart</div>
+            <div class="text-subtitle1 q-mb-xl">Please sign in to continue</div>
+            
+            <div class="q-gutter-y-md">
+              <q-input
+                outlined
+                v-model="email"
+                label="Email"
+                type="email"
+                :readonly="otpSent"
+                @keyup.enter="handleLogin"
+              />
+              <q-input
+                v-if="otpSent"
+                outlined
+                v-model="otpCode"
+                label="OTP Code"
+                type="text"
+                @keyup.enter="handleLogin"
+              />
+              <q-btn
+                color="primary"
+                :label="otpSent ? 'Verify Code' : 'Send OTP'"
+                @click="handleLogin"
+                :loading="loading"
+                class="full-width"
+                size="lg"
+              />
+            </div>
+          </q-card-section>
+        </q-card>
+      </div>
     </q-page-container>
 
   </q-layout>
