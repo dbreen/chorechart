@@ -150,7 +150,9 @@ createQuasarApp(createApp, quasarUserOptions)
 
     return Promise[ method ]([
       
-      import('boot/dark-mode')
+      import('boot/dark-mode'),
+      
+      import('boot/supabase')
       
     ]).then(bootFiles => {
       const boot = mapFn(bootFiles).filter(entry => typeof entry === 'function')

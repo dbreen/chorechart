@@ -13,9 +13,9 @@
 
 
 
-import {QLayout,QHeader,QDrawer,QPageContainer,QPage,QToolbar,QToolbarTitle,QBtn,QIcon,QList,QItem,QItemSection,QItemLabel,QCard,QCardSection,QCardActions,QCheckbox,QSeparator,QBadge,QSpace,Ripple,Notify,LocalStorage,Dialog} from 'quasar'
+import {QLayout,QHeader,QDrawer,QPageContainer,QPage,QToolbar,QToolbarTitle,QBtn,QIcon,QList,QItem,QItemSection,QItemLabel,QCard,QCardSection,QCardActions,QCheckbox,QSeparator,QBadge,QSpace,QInput,Ripple,Notify,LocalStorage,Dialog} from 'quasar'
 
 
 
-export default { config: {},components: {QLayout,QHeader,QDrawer,QPageContainer,QPage,QToolbar,QToolbarTitle,QBtn,QIcon,QList,QItem,QItemSection,QItemLabel,QCard,QCardSection,QCardActions,QCheckbox,QSeparator,QBadge,QSpace},directives: {Ripple},plugins: {Notify,LocalStorage,Dialog} }
+export default { config: {},components: {QLayout,QHeader,QDrawer,QPageContainer,QPage,QToolbar,QToolbarTitle,QBtn,QIcon,QList,QItem,QItemSection,QItemLabel,QCard,QCardSection,QCardActions,QCheckbox,QSeparator,QBadge,QSpace,QInput},directives: {Ripple},plugins: {Notify,LocalStorage,Dialog} }
 
