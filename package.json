@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.16.5",
+    "@supabase/supabase-js": "^2.49.4",
     "canvas-confetti": "^1.9.3",
     "quasar": "^2.12.0",
-    "vue": "^3.3.4",
-    "@supabase/supabase-js": "^2.43.4" // <-- ADD THIS LINE (ensure version is current)
+    "vue": "^3.3.4"
   },
   "devDependencies": {
     "@quasar/app-vite": "^1.4.3",

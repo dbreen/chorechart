@@ -181,7 +181,7 @@
 import { defineComponent, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
-import confetti from 'canvas-confetti' // <-- ADD THIS IMPORT
+import confetti from 'canvas-confetti'
 
 export default defineComponent({
   name: 'DayPage',
@@ -204,7 +204,7 @@ export default defineComponent({
     }
     
     const day = ref(choreData.value.days[dayIndex])
-    const isDadMode = ref(false) // <-- Add Dad Mode state
+    const isDadMode = ref(false)
 
     const saveData = () => {
       $q.localStorage.set('choreData', choreData.value)
@@ -226,7 +226,7 @@ export default defineComponent({
       day.value.dailiesCompleted = day.value.dailyChores.every(chore => chore.completed)
       // Trigger confetti if status changed to completed
       if (day.value.dailiesCompleted && !wasCompleted) {
-        triggerConfetti(); // <-- Trigger confetti
+        triggerConfetti();
       }
       updateAllCompleted()
       saveData()
@@ -238,7 +238,7 @@ export default defineComponent({
       day.value.uniqueCompleted = day.value.uniqueChore.completed
       // Trigger confetti if status changed to completed
       if (day.value.uniqueCompleted && !wasCompleted) {
-        triggerConfetti(); // <-- Trigger confetti
+        triggerConfetti();
       }
       updateAllCompleted()
       saveData()
@@ -250,7 +250,7 @@ export default defineComponent({
       day.value.bonusCompleted = day.value.bonusChore.completed
       // Trigger confetti if status changed to completed AND bonus is available
       if (day.value.bonusCompleted && !wasCompleted && day.value.bonusAvailable) {
-        triggerConfetti(); // <-- Trigger confetti
+        triggerConfetti();
       }
       updateAllCompleted()
       saveData()
@@ -292,7 +292,7 @@ export default defineComponent({
     const updateExtraChoreStatus = (isCompleted) => {
       // Only trigger confetti if it was just completed (not when unchecked)
       if (isCompleted) {
-        triggerConfetti(); // Celebrate with confetti!
+        triggerConfetti();
       }
       
       saveData();
@@ -326,23 +326,22 @@ export default defineComponent({
     
     return {
       day,
-      isDadMode, // <-- Expose Dad Mode state
+      isDadMode,
       saveData,
       updateDailyStatus,
       updateUniqueStatus,
       updateBonusStatus,
       calculateDailyTotal,
-      addExtraChore, // <-- Expose add function
-      deleteExtraChore, // <-- Expose delete function
-      updateExtraChoreStatus // <-- Expose new function
+      addExtraChore,
+      deleteExtraChore,
+      updateExtraChoreStatus
     }
   }
 })
 </script>
 
 <style lang="scss" scoped>
-/* Add some styling if needed */
 .extra-chore {
-  border-left: 5px solid var(--q-info); /* Use Quasar info color */
+  border-left: 5px solid var(--q-info);
 }
 </style>

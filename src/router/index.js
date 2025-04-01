@@ -1,9 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import routes from './routes'
-import { userSession } from '../boot/supabase' // Use relative path import
+import { userSession } from '../boot/supabase'
 
 const router = createRouter({
-  history: createWebHashHistory('/chorechart/'), // Base path for hash mode
+  history: createWebHashHistory('/chorechart/'),
   routes
 })
 
@@ -15,7 +15,6 @@ router.beforeEach((to, from, next) => {
   if (requiresAuth && !isAuthenticated) {
     // If route requires auth and user is not logged in...
 
-    // vvv CHANGE THIS BLOCK vvv
     if (to.path === '/') {
       // ...and we are already trying to navigate to the root path,
       // allow the navigation. MainLayout will handle showing the login prompt.
@@ -25,7 +24,6 @@ router.beforeEach((to, from, next) => {
       // redirect to the root path.
       next('/')
     }
-    // ^^^ CHANGE THIS BLOCK ^^^
 
   } else {
     // Otherwise (route doesn't require auth OR user is authenticated), proceed.

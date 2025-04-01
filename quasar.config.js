@@ -1,9 +1,8 @@
 module.exports = function (ctx) {
   return {
-    // --- Make sure 'supabase' is in the boot array ---
     boot: [
       'dark-mode',
-      'supabase' // <-- Ensure this line is present
+      'supabase'
     ],
     css: ['app.scss'],
     extras: [
@@ -31,7 +30,7 @@ module.exports = function (ctx) {
         'QSeparator',
         'QBadge',
         'QSpace',
-        'QInput' // <-- Ensure QInput is listed for the login form
+        'QInput'
       ],
       directives: ['Ripple'],
       plugins: ['Notify', 'LocalStorage', 'Dialog']

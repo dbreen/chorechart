@@ -42,10 +42,8 @@
 </template>
 
 <script>
-// Change 1: Update imports
-import { defineComponent, computed } from 'vue' // <-- Add computed
+import { defineComponent, computed } from 'vue'
 import { useQuasar } from 'quasar'
-// Import chore data and helper
 import { standardDailyChores, potentialUniqueChores, bonusChore, getRandomUniqueChores } from '../data/chores.js'
 
 export default defineComponent({
@@ -56,7 +54,6 @@ export default defineComponent({
     
     const initializeWeek = () => {
       if (!$q.localStorage.has('choreData')) {
-        // Change 2: Build defaultData dynamically
         const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
         const selectedUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysOfWeek.length);
 
@@ -84,7 +81,7 @@ export default defineComponent({
             bonusCompleted: false,
             bonusAvailable: false, // Controlled on DayPage
             allCompleted: false,
-            extraChores: [] // <-- ADD THIS LINE
+            extraChores: []
           })),
           lastResetDate: new Date().toISOString()
         };
@@ -98,7 +95,6 @@ export default defineComponent({
 
     const choreData = initializeWeek();
 
-    // Change 3: Update how 'days' for the template is derived (make computed)
     const days = computed(() => choreData.days.map(day => ({
       name: day.name,
       uniqueChore: day.uniqueChore.name, // Ensure this reads the name correctly
@@ -107,11 +103,11 @@ export default defineComponent({
       bonusCompleted: day.bonusCompleted,
       bonusAvailable: day.bonusAvailable,
       allCompleted: day.allCompleted,
-      extraChoresCount: day.extraChores ? day.extraChores.length : 0 // <-- ADD THIS (check if exists)
+      extraChoresCount: day.extraChores ? day.extraChores.length : 0
     })))
 
     return {
-      days // Return the computed property
+      days
     }
   }
 })
