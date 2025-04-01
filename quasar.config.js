@@ -30,7 +30,8 @@ module.exports = function (ctx) {
         'QSeparator',
         'QBadge',
         'QSpace',
-        'QInput'
+        'QInput',
+        'QItemLabel'
       ],
       directives: ['Ripple'],
       plugins: ['Notify', 'LocalStorage', 'Dialog']

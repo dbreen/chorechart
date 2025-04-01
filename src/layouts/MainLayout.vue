@@ -3,34 +3,66 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
-        <q-toolbar-title>
-          ChoreChart
-        </q-toolbar-title>
-        <q-space />
-
-        <!-- Only show dark mode toggle and nav when logged in -->
-        <template v-if="userSession">
-          <q-btn flat round dense icon="home" to="/" />
-          <q-btn flat round dense icon="summarize" to="/summary" />
-          <q-btn flat round dense icon="edit" to="/manage-chores" />
-          <q-btn
-            flat dense
-            label="Logout"
-            @click="handleLogout"
-            :loading="loading"
-            class="q-ml-sm"
-          />
-        </template>
-
-        <!-- Dark Mode Toggle (always visible) -->
+        <q-btn
+          flat dense round
+          icon="menu"
+          @click="leftDrawerOpen = !leftDrawerOpen"
+          class="q-mr-sm"
+        />
+        <q-toolbar-title>ChoreChart</q-toolbar-title>
+        
+        <!-- Version and dark mode on right -->
+        <div class="text-caption q-mr-md">v1.0.0</div>
         <q-btn
           flat round dense
           :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
           @click="$q.dark.toggle()"
-          class="q-ml-md"
         />
       </q-toolbar>
     </q-header>
+
+    <q-drawer
+      v-model="leftDrawerOpen"
+      bordered
+      :width="250"
+      class="bg-grey-2"
+    >
+      <q-list padding>
+        <q-item-label header class="text-weight-bold">
+          Navigation
+        </q-item-label>
+
+        <q-item clickable v-ripple exact to="/">
+          <q-item-section avatar>
+            <q-icon name="home" />
+          </q-item-section>
+          <q-item-section>Home</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/summary">
+          <q-item-section avatar>
+            <q-icon name="summarize" />
+          </q-item-section>
+          <q-item-section>Weekly Summary</q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple to="/manage-chores">
+          <q-item-section avatar>
+            <q-icon name="edit" />
+          </q-item-section>
+          <q-item-section>Manage Chores</q-item-section>
+        </q-item>
+
+        <q-separator class="q-my-md" />
+
+        <q-item clickable v-ripple @click="handleLogout">
+          <q-item-section avatar>
+            <q-icon name="logout" />
+          </q-item-section>
+          <q-item-section>Log Out</q-item-section>
+        </q-item>
+      </q-list>
+    </q-drawer>
 
     <q-page-container>
       <router-view v-if="userSession" />
@@ -91,6 +123,7 @@ export default defineComponent({
     const loading = ref(false)
     const otpSent = ref(false)
     const otpCode = ref('')
+    const leftDrawerOpen = ref(false)
 
     // Watch for dark mode changes and save preference
     watch(() => $q.dark.isActive, (isDark) => {
@@ -180,7 +213,8 @@ export default defineComponent({
       handleLogout,
       baseUrl,
       otpSent,
-      otpCode
+      otpCode,
+      leftDrawerOpen
     }
   }
 })
