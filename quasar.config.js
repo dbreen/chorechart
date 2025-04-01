@@ -35,7 +35,13 @@ module.exports = function (ctx) {
     },
     build: {
       vueRouterMode: 'hash',
-      publicPath: '/chorechart/'
+      publicPath: '/chorechart/',
+      // vvv ADD THIS vvv
+      env: {
+        SUPABASE_URL: 'YOUR_SUPABASE_URL_HERE', // <-- REPLACE THIS
+        SUPABASE_KEY: 'YOUR_SUPABASE_ANON_KEY_HERE' // <-- REPLACE THIS
+      }
+      // ^^^ ADD THIS ^^^
     },
     pwa: {
       workboxOptions: {},
