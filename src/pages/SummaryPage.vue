@@ -88,11 +88,10 @@
 </template>
 
 <script>
-// Change 1: Update imports
-import { defineComponent, computed, onMounted, onUnmounted, ref } from 'vue' // <-- Add onMounted, onUnmounted, ref
+import { defineComponent, computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import confetti from 'canvas-confetti' // <-- Add confetti import
+import confetti from 'canvas-confetti'
 // Import chore data and helper
 import { potentialUniqueChores, getRandomUniqueChores } from '../data/chores.js' // Only need potential list and helper here
 
@@ -103,7 +102,6 @@ export default defineComponent({
     const $q = useQuasar()
     const router = useRouter()
 
-    // Change 2: Add ref for interval ID
     const confettiIntervalId = ref(null)
 
     // Non-reactive approach for display (as currently implemented)
@@ -167,24 +165,20 @@ export default defineComponent({
       });
     }
 
-    // Add onMounted hook to start confetti
     onMounted(() => {
-      confettiIntervalId.value = setInterval(launchConfettiRain, 800); // Start rain
+      confettiIntervalId.value = setInterval(launchConfettiRain, 800);
     })
 
-    // Add onUnmounted hook to stop confetti
     onUnmounted(() => {
       if (confettiIntervalId.value) {
-        clearInterval(confettiIntervalId.value); // Stop rain
+        clearInterval(confettiIntervalId.value);
       }
     })
 
     const resetWeek = () => {
-      // Change 2: Fetch current data and update it
       const currentChoreData = $q.localStorage.getItem('choreData');
       const daysToReset = currentChoreData.days;
 
-      // Change 3: Get new random unique chores
       const newUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysToReset.length);
 
       daysToReset.forEach((day, index) => {
@@ -193,7 +187,6 @@ export default defineComponent({
           chore.completed = false;
         });
 
-        // Change 4: Assign new unique chore and reset it
         day.uniqueChore.name = newUniqueChores[index];
         day.uniqueChore.completed = false;
 
@@ -202,7 +195,7 @@ export default defineComponent({
         day.bonusAvailable = false; // Reset availability as well
 
         // Clear extra chores
-        day.extraChores = []; // <-- ADD THIS LINE
+        day.extraChores = [];
 
         // Reset status flags
         day.dailiesCompleted = false;
