@@ -173,7 +173,10 @@ export default defineComponent({
         if (!otpSent.value) {
           // Phase 1: Send OTP
           const { error } = await $supabase.auth.signInWithOtp({
-            email: email.value
+            email: email.value,
+            options: {
+                emailRedirectTo: `${baseUrl}`
+            }
           })
           
           if (error) throw error
