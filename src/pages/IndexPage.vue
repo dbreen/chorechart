@@ -42,29 +42,53 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
-import { standardDailyChores, potentialUniqueChores, bonusChore, getRandomUniqueChores } from '../data/chores.js'
+import { bonusChore, getRandomUniqueChores, getStandardChores } from '../data/chores.js'
+import { userSession } from 'boot/supabase'
 
 export default defineComponent({
   name: 'IndexPage',
   
   setup() {
     const $q = useQuasar()
+    const userChores = ref([])
+    
+    // Fetch user's chores when component mounts
+    onMounted(async () => {
+      if (userSession.value) {
+        try {
+          userChores.value = await getStandardChores(userSession.value.user.id)
+        } catch (error) {
+          console.error('Error loading chores:', error)
+          $q.notify({ type: 'negative', message: 'Failed to load chores' })
+        }
+      }
+    })
     
     const initializeWeek = () => {
       if (!$q.localStorage.has('choreData')) {
         const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
-        const selectedUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysOfWeek.length);
+        
+        // Use actual user chores from database or fallback to empty array if none loaded yet
+        const availableChores = userChores.value.length > 0 
+          ? userChores.value.map(c => c.name)
+          : ['Make bed', 'Clean room', 'Take out trash', 'Set table', 'Feed pet'];
+          
+        const selectedUniqueChores = getRandomUniqueChores(availableChores, daysOfWeek.length);
 
         const defaultData = {
           days: daysOfWeek.map((dayName, index) => ({
             name: dayName,
-            // Deep copy standard chores, add completed status
-            dailyChores: JSON.parse(JSON.stringify(standardDailyChores)).map(chore => ({ ...chore, completed: false })),
+            // We'll need to update this with actual daily chores later
+            dailyChores: [
+              { id: 1, name: 'Make bed', completed: false },
+              { id: 2, name: 'Clean room', completed: false },
+              { id: 3, name: 'Take out trash', completed: false }
+            ],
             // Assign a unique chore from the selected list
             uniqueChore: {
-              id: 4, // Keep a consistent ID structure if needed, or remove if name is enough
+              id: 4,
               name: selectedUniqueChores[index],
               completed: false
             },
