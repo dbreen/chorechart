@@ -43,12 +43,23 @@ export const standardDailyChores = [
   { id: 3, name: 'Take out trash' }
 ];
 
+// List of potential unique chores to randomly assign
+export const potentialUniqueChores = [
+  'Clean bathroom',
+  'Vacuum living room',
+  'Wipe kitchen counters',
+  'Mop floors',
+  'Water plants',
+  'Organize bookshelf',
+  'Dust furniture'
+];
+
 // Helper function to get N random unique chores from the potential list
 // Ensures no duplicates within the returned list
-export function getRandomUniqueChores(list, count) {
+export function getRandomUniqueChores(list = potentialUniqueChores, count) {
   if (!list || !list.length) {
-    console.warn("No chores available. Using fallback chores.");
-    list = ['Make bed', 'Clean room', 'Take out trash', 'Set table', 'Feed pet'];
+    console.warn("No chores list provided - using default potentialUniqueChores");
+    list = potentialUniqueChores;
   }
   
   if (count > list.length) {
