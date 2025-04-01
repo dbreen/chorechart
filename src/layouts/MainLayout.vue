@@ -11,13 +11,8 @@
         />
         <q-toolbar-title>ChoreChart</q-toolbar-title>
         
-        <!-- Version and dark mode on right -->
+        <!-- Version on right -->
         <div class="text-caption q-mr-md">v1.0.0</div>
-        <q-btn
-          flat round dense
-          :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-          @click="$q.dark.toggle()"
-        />
       </q-toolbar>
     </q-header>
 
@@ -25,28 +20,28 @@
       v-model="leftDrawerOpen"
       bordered
       :width="250"
-      class="bg-grey-2"
+      :class="$q.dark.isActive ? 'bg-dark' : 'bg-grey-2'"
     >
       <q-list padding>
-        <q-item-label header class="text-weight-bold">
+        <q-item-label header class="text-weight-bold" :class="$q.dark.isActive ? 'text-white' : 'text-dark'">
           Navigation
         </q-item-label>
 
-        <q-item clickable v-ripple exact to="/">
+        <q-item clickable v-ripple exact to="/" :class="$q.dark.isActive ? 'text-white' : 'text-dark'">
           <q-item-section avatar>
             <q-icon name="home" />
           </q-item-section>
           <q-item-section>Home</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple to="/summary">
+        <q-item clickable v-ripple to="/summary" :class="$q.dark.isActive ? 'text-white' : 'text-dark'">
           <q-item-section avatar>
             <q-icon name="summarize" />
           </q-item-section>
           <q-item-section>Weekly Summary</q-item-section>
         </q-item>
 
-        <q-item clickable v-ripple to="/manage-chores">
+        <q-item clickable v-ripple to="/manage-chores" :class="$q.dark.isActive ? 'text-white' : 'text-dark'">
           <q-item-section avatar>
             <q-icon name="edit" />
           </q-item-section>
@@ -55,7 +50,16 @@
 
         <q-separator class="q-my-md" />
 
-        <q-item clickable v-ripple @click="handleLogout">
+        <q-item clickable v-ripple @click="$q.dark.toggle()" :class="$q.dark.isActive ? 'text-white' : 'text-dark'">
+          <q-item-section avatar>
+            <q-icon :name="$q.dark.isActive ? 'light_mode' : 'dark_mode'" />
+          </q-item-section>
+          <q-item-section>
+            {{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}
+          </q-item-section>
+        </q-item>
+
+        <q-item clickable v-ripple @click="handleLogout" :class="$q.dark.isActive ? 'text-white' : 'text-dark'">
           <q-item-section avatar>
             <q-icon name="logout" />
           </q-item-section>
