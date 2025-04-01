@@ -7,7 +7,7 @@
       <q-card class="q-mb-md">
         <q-card-section>
           <div class="text-h6">Add New Chore</div>
-          <q-form @submit="addChore" class="q-gutter-md" ref="choreForm">
+          <q-form @submit="addChore" class="q-gutter-md" ref="formRef">
             <q-input
               v-model="newChore.name"
               label="Chore Name"
@@ -99,6 +99,7 @@ export default defineComponent({
     const $q = useQuasar()
     const userSession = inject('userSession')
     
+    const formRef = ref(null)
     const chores = ref([])
     const loading = ref(false)
     const deletingId = ref(null)
@@ -146,8 +147,8 @@ export default defineComponent({
         
         // Reset form fields and validation
         newChore.value = { name: '', amount: 1.00 }
-        if (this.$refs && this.$refs.choreForm) {
-          this.$refs.choreForm.resetValidation()
+        if (formRef.value) {
+          formRef.value.resetValidation()
         }
         
         await loadChores() // Refresh list
@@ -202,6 +203,7 @@ export default defineComponent({
     }
     
     return {
+      formRef,
       chores,
       loading,
       newChore,
