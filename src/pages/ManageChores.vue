@@ -11,7 +11,10 @@
             <q-input
               v-model="newChore.name"
               label="Chore Name"
-              :rules="[val => !!val || 'Chore name is required']"
+              :rules="[
+                val => !!val || 'Chore name is required',
+                val => val.length <= 50 || 'Max 50 characters'
+              ]"
               outlined
               dense
               reactive-rules
@@ -23,7 +26,10 @@
               type="number"
               step="0.10"
               min="0"
-              :rules="[val => val >= 0 || 'Must be $0 or more']"
+              :rules="[
+                val => val !== null || 'Amount is required',
+                val => val >= 0 || 'Must be $0 or more'
+              ]"
               outlined
               dense
               reactive-rules
@@ -65,7 +71,7 @@
               <q-item-section>
                 <q-item-label>{{ chore.name }}</q-item-label>
                 <q-item-label caption>
-                  ${{ parseFloat(chore.amount).toFixed(2) }}
+                  ${{ !isNaN(chore.amount) ? parseFloat(chore.amount).toFixed(2) : '0.00' }}
                 </q-item-label>
               </q-item-section>
               
@@ -133,9 +139,11 @@ export default defineComponent({
     
     // Add a new chore
     const addChore = async () => {
-      if (!newChore.value.name.trim()) return
-      
       try {
+        // Validate form first
+        const valid = await formRef.value.validate()
+        if (!valid) return
+
         loading.value = true
         const choreData = {
           name: newChore.value.name.trim(),
@@ -145,11 +153,9 @@ export default defineComponent({
         
         await createChore(choreData)
         
-        // Reset form fields and validation
+        // Reset form and validation
         newChore.value = { name: '', amount: 1.00 }
-        if (formRef.value) {
-          formRef.value.resetValidation()
-        }
+        formRef.value.resetValidation()
         
         await loadChores() // Refresh list
         
@@ -161,7 +167,7 @@ export default defineComponent({
         console.error('Error adding chore:', error)
         $q.notify({
           type: 'negative',
-          message: 'Failed to add chore. Please try again.'
+          message: error.message || 'Failed to add chore. Please try again.'
         })
       } finally {
         loading.value = false
