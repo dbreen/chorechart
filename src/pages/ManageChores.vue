@@ -3,6 +3,18 @@
     <div class="q-pa-md">
       <h4 class="q-mt-none q-mb-md">Manage Chores</h4>
       
+      <!-- Welcome banner for new users -->
+      <q-banner 
+        v-if="chores.length === 0" 
+        class="bg-info text-white q-mb-md"
+      >
+        <template #avatar>
+          <q-icon name="info" size="24px" />
+        </template>
+        Welcome! Get started by adding your first chore. These will be used to 
+        generate weekly schedules. You can edit them anytime here.
+      </q-banner>
+      
       <!-- Add new chore form -->
       <q-card class="q-mb-md">
         <q-card-section>

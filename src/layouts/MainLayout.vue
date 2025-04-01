@@ -113,6 +113,8 @@
 <script>
 import { defineComponent, watch, ref, inject } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
+import { getStandardChores } from '../data/chores'
 
 export default defineComponent({
   name: 'MainLayout',
@@ -122,17 +124,40 @@ export default defineComponent({
     const $supabase = inject('$supabase') // Inject Supabase client
     const userSession = inject('userSession') // Inject reactive user session
     const baseUrl = inject('baseUrl') // Inject base URL
+    const router = useRouter()
 
     const email = ref('')
     const loading = ref(false)
     const otpSent = ref(false)
     const otpCode = ref('')
     const leftDrawerOpen = ref(false)
+    const hasCheckedInitialChores = ref(false)
+    const initialCheckLoading = ref(false)
 
     // Watch for dark mode changes and save preference
     watch(() => $q.dark.isActive, (isDark) => {
       const preference = isDark ? 'dark' : 'light'
       $q.localStorage.set('darkModePreference', preference)
+    })
+
+    // Watch for user session changes to check if user has chores
+    watch(userSession, async (newSession) => {
+      if (newSession?.user?.id && !hasCheckedInitialChores.value) {
+        initialCheckLoading.value = true
+        try {
+          const chores = await getStandardChores(newSession.user.id)
+          if (chores.length === 0) {
+            if (router.currentRoute.value.path !== '/manage-chores') {
+              router.push('/manage-chores')
+            }
+          }
+          hasCheckedInitialChores.value = true
+        } catch (error) {
+          console.error('Chore check error:', error)
+        } finally {
+          initialCheckLoading.value = false
+        }
+      }
     })
 
     // Login Handler
@@ -218,7 +243,9 @@ export default defineComponent({
       baseUrl,
       otpSent,
       otpCode,
-      leftDrawerOpen
+      leftDrawerOpen,
+      initialCheckLoading,
+      hasCheckedInitialChores
     }
   }
 })
