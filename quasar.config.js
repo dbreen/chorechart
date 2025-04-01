@@ -40,7 +40,8 @@ module.exports = function (ctx) {
       publicPath: '/chorechart/',
       env: {
         SUPABASE_URL: 'https://mxvldqwpwjeiothsudfy.supabase.co',
-        SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14dmxkcXdwd2plaW90aHN1ZGZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MTEzNDQsImV4cCI6MjA1OTA4NzM0NH0.Z69W0OarxOYTvZCJs3CAB6thhznpgE00DAOeuBHiSuE'
+        SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14dmxkcXdwd2plaW90aHN1ZGZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MTEzNDQsImV4cCI6MjA1OTA4NzM0NH0.Z69W0OarxOYTvZCJs3CAB6thhznpgE00DAOeuBHiSuE',
+        PUBLIC_PATH: '/chorechart/'
       }
     },
     pwa: {

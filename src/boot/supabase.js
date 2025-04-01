@@ -7,6 +7,9 @@ const supabaseUrl = process.env.SUPABASE_URL
 const supabaseKey = process.env.SUPABASE_KEY
 const supabase = createClient(supabaseUrl, supabaseKey)
 
+// Create base URL for redirects
+const baseUrl = window.location.origin + process.env.PUBLIC_PATH
+
 // Create a reactive variable for the user session
 const userSession = ref(null)
 
@@ -26,11 +29,13 @@ export default boot(async ({ app, router }) => {
 
   // Make the reactive user session available globally
   app.config.globalProperties.$userSession = userSession
+  app.config.globalProperties.$baseUrl = baseUrl
 
   // Provide for Composition API inject()
   app.provide('$supabase', supabase)
   app.provide('userSession', userSession)
+  app.provide('baseUrl', baseUrl)
 })
 
-// Export the client and reactive session for direct import
-export { supabase, userSession }
+// Export the client, reactive session, and baseUrl for direct import
+export { supabase, userSession, baseUrl }

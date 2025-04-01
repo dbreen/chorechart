@@ -80,6 +80,7 @@ export default defineComponent({
     const $q = useQuasar()
     const $supabase = inject('$supabase') // Inject Supabase client
     const userSession = inject('userSession') // Inject reactive user session
+    const baseUrl = inject('baseUrl') // Inject base URL
 
     const email = ref('')
     const loading = ref(false)
@@ -101,8 +102,8 @@ export default defineComponent({
         const { error } = await $supabase.auth.signInWithOtp({
           email: email.value,
           options: {
-            // Optional: Define redirect URL after magic link click
-            // emailRedirectTo: window.location.origin + '/chorechart/'
+            // Define redirect URL after magic link click
+            emailRedirectTo: `${baseUrl}/#/`
           }
         })
         if (error) throw error
@@ -138,7 +139,8 @@ export default defineComponent({
       email,
       loading,
       handleLogin,
-      handleLogout
+      handleLogout,
+      baseUrl
     }
   }
 })
