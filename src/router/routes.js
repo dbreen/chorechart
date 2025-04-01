@@ -6,7 +6,8 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'day/:dayName', component: () => import('pages/DayPage.vue') },
-      { path: 'summary', component: () => import('pages/SummaryPage.vue') }
+      { path: 'summary', component: () => import('pages/SummaryPage.vue') },
+      { path: 'manage-chores', component: () => import('pages/ManageChores.vue') }
     ]
   },
   {

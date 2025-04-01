@@ -12,6 +12,7 @@
         <template v-if="userSession">
           <q-btn flat round dense icon="home" to="/" />
           <q-btn flat round dense icon="summarize" to="/summary" />
+          <q-btn flat round dense icon="edit" to="/manage-chores" />
           <q-btn
             flat dense
             label="Logout"
