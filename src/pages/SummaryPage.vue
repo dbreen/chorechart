@@ -88,12 +88,13 @@
 </template>
 
 <script>
-import { defineComponent, computed, onMounted, onUnmounted, ref } from 'vue'
+// Change 1: Update imports
+import { defineComponent, computed, onMounted, onUnmounted, ref } from 'vue' // <-- Add onMounted, onUnmounted, ref
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import confetti from 'canvas-confetti'
-import { getRandomUniqueChores, getStandardChores } from '../data/chores.js'
-import { userSession } from 'boot/supabase'
+import confetti from 'canvas-confetti' // <-- Add confetti import
+// Import chore data and helper
+import { potentialUniqueChores, getRandomUniqueChores } from '../data/chores.js' // Only need potential list and helper here
 
 export default defineComponent({
   name: 'SummaryPage',
@@ -102,20 +103,8 @@ export default defineComponent({
     const $q = useQuasar()
     const router = useRouter()
 
+    // Change 2: Add ref for interval ID
     const confettiIntervalId = ref(null)
-    const userChores = ref([])
-
-    // Fetch user's chores when component mounts
-    onMounted(async () => {
-      if (userSession.value) {
-        try {
-          userChores.value = await getStandardChores(userSession.value.user.id)
-        } catch (error) {
-          console.error('Error loading chores:', error)
-          $q.notify({ type: 'negative', message: 'Failed to load chores' })
-        }
-      }
-    })
 
     // Non-reactive approach for display (as currently implemented)
     const initialChoreData = $q.localStorage.getItem('choreData')
@@ -190,13 +179,13 @@ export default defineComponent({
       }
     })
 
-    const resetWeek = async () => {
+    const resetWeek = () => {
+      // Change 2: Fetch current data and update it
       const currentChoreData = $q.localStorage.getItem('choreData');
       const daysToReset = currentChoreData.days;
 
-      // Use actual user chores from database
-      const availableChores = userChores.value.map(c => c.name);
-      const newUniqueChores = getRandomUniqueChores(availableChores, daysToReset.length);
+      // Change 3: Get new random unique chores
+      const newUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysToReset.length);
 
       daysToReset.forEach((day, index) => {
         // Reset daily chores
@@ -204,6 +193,7 @@ export default defineComponent({
           chore.completed = false;
         });
 
+        // Change 4: Assign new unique chore and reset it
         day.uniqueChore.name = newUniqueChores[index];
         day.uniqueChore.completed = false;
 
@@ -212,7 +202,7 @@ export default defineComponent({
         day.bonusAvailable = false; // Reset availability as well
 
         // Clear extra chores
-        day.extraChores = [];
+        day.extraChores = []; // <-- ADD THIS LINE
 
         // Reset status flags
         day.dailiesCompleted = false;
@@ -240,7 +230,7 @@ export default defineComponent({
     const confirmReset = () => {
       $q.dialog({
         title: 'Reset Week',
-        message: 'This will clear all progress and assign new random chores from your list. Continue?',
+        message: 'This will clear all chores, assign new random special chores, and start a new week. Are you sure?', // Updated message
         cancel: true,
         persistent: true
       }).onOk(() => {
