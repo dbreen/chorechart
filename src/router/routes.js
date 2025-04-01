@@ -2,9 +2,7 @@ const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
-    // vvv ADD THIS META FIELD vvv
-    meta: { requiresAuth: true },
-    // ^^^ ADD THIS META FIELD ^^^
+    meta: { requiresAuth: true }, // <-- Ensure this meta field exists
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'day/:dayName', component: () => import('pages/DayPage.vue') },
