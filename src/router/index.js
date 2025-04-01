@@ -1,6 +1,8 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 import routes from './routes'
-import { userSession } from 'boot/supabase' // <-- ADD THIS IMPORT
+// vvv CHANGE THIS LINE vvv
+import { userSession } from '../boot/supabase' // Use relative path
+// ^^^ CHANGE THIS LINE ^^^
 
 const router = createRouter({
   history: createWebHashHistory('/chorechart/'),
