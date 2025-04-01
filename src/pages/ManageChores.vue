@@ -7,14 +7,32 @@
       <q-card class="q-mb-md">
         <q-card-section>
           <div class="text-h6">Add New Chore</div>
-          <q-form @submit="addChore" class="q-gutter-md">
+          <q-form @submit="addChore" class="q-gutter-md" ref="choreForm">
             <q-input
               v-model="newChore.name"
               label="Chore Name"
               :rules="[val => !!val || 'Chore name is required']"
               outlined
               dense
+              reactive-rules
+              lazy-rules
             />
+            <q-input
+              v-model.number="newChore.amount"
+              label="Amount"
+              type="number"
+              step="0.10"
+              min="0"
+              :rules="[val => val >= 0 || 'Must be $0 or more']"
+              outlined
+              dense
+              reactive-rules
+              lazy-rules
+            >
+              <template v-slot:prepend>
+                <q-icon name="attach_money" />
+              </template>
+            </q-input>
             <div class="row justify-end">
               <q-btn
                 type="submit"
@@ -46,6 +64,9 @@
             <q-item v-for="chore in chores" :key="chore.id">
               <q-item-section>
                 <q-item-label>{{ chore.name }}</q-item-label>
+                <q-item-label caption>
+                  ${{ parseFloat(chore.amount).toFixed(2) }}
+                </q-item-label>
               </q-item-section>
               
               <q-item-section side>
@@ -82,7 +103,8 @@ export default defineComponent({
     const loading = ref(false)
     const deletingId = ref(null)
     const newChore = ref({
-      name: ''
+      name: '',
+      amount: 1.00
     })
     
     // Load chores on component mount
@@ -116,11 +138,18 @@ export default defineComponent({
         loading.value = true
         const choreData = {
           name: newChore.value.name.trim(),
+          amount: parseFloat(newChore.value.amount).toFixed(2), // Ensure 2 decimal places
           user_id: userSession.value.user.id
         }
         
         await createChore(choreData)
-        newChore.value.name = '' // Reset form
+        
+        // Reset form fields and validation
+        newChore.value = { name: '', amount: 1.00 }
+        if (this.$refs && this.$refs.choreForm) {
+          this.$refs.choreForm.resetValidation()
+        }
+        
         await loadChores() // Refresh list
         
         $q.notify({
