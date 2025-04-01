@@ -21,10 +21,24 @@
             input-style="color: white;"
             @keyup.enter="handleLogin"
             style="min-width: 200px;"
+            :readonly="otpSent"
+          />
+          <q-input
+            v-if="otpSent"
+            dark dense standout
+            v-model="otpCode"
+            label="OTP Code"
+            type="text"
+            class="q-ml-sm"
+            bg-color="primary"
+            label-color="white"
+            input-style="color: white;"
+            @keyup.enter="handleLogin"
+            style="min-width: 200px;"
           />
           <q-btn
             flat dense
-            label="Login"
+            :label="otpSent ? 'Verify' : 'Send OTP'"
             @click="handleLogin"
             :loading="loading"
           />
@@ -84,6 +98,8 @@ export default defineComponent({
 
     const email = ref('')
     const loading = ref(false)
+    const otpSent = ref(false)
+    const otpCode = ref('')
 
     // Watch for dark mode changes and save preference
     watch(() => $q.dark.isActive, (isDark) => {
@@ -97,21 +113,52 @@ export default defineComponent({
         $q.notify({ type: 'negative', message: 'Please enter your email address.' })
         return
       }
+      
       try {
         loading.value = true
-        const { error } = await $supabase.auth.signInWithOtp({
-          email: email.value,
-          options: {
-            // Define redirect URL after magic link click
-            emailRedirectTo: `${baseUrl}/#/`
-          }
-        })
-        if (error) throw error
-        $q.notify({ type: 'positive', message: 'Check your email for the login link!' })
-        email.value = '' // Clear email field
+        
+        if (!otpSent.value) {
+          // Phase 1: Send OTP
+          const { error } = await $supabase.auth.signInWithOtp({
+            email: email.value
+          })
+          
+          if (error) throw error
+          otpSent.value = true
+          $q.notify({ 
+            type: 'positive', 
+            message: 'OTP sent! Check your email for the verification code.',
+            timeout: 5000
+          })
+        } else {
+          // Phase 2: Verify OTP
+          const { error } = await $supabase.auth.verifyOtp({
+            email: email.value,
+            token: otpCode.value,
+            type: 'email'
+          })
+          
+          if (error) throw error
+          otpSent.value = false
+          otpCode.value = ''
+          $q.notify({ 
+            type: 'positive', 
+            message: 'Successfully logged in!',
+            timeout: 2000
+          })
+        }
       } catch (error) {
-        console.error('Login Error:', error)
-        $q.notify({ type: 'negative', message: error.error_description || error.message })
+        console.error('Auth Error:', error)
+        $q.notify({
+          type: 'negative',
+          message: error.message || 'Authentication failed',
+          timeout: 5000
+        })
+        
+        // Reset on invalid OTP
+        if (otpSent.value) {
+          otpCode.value = ''
+        }
       } finally {
         loading.value = false
       }
@@ -140,7 +187,9 @@ export default defineComponent({
       loading,
       handleLogin,
       handleLogout,
-      baseUrl
+      baseUrl,
+      otpSent,
+      otpCode
     }
   }
 })
