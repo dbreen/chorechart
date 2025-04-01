@@ -92,7 +92,8 @@ import { defineComponent, computed, onMounted, onUnmounted, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
-import { potentialUniqueChores, getRandomUniqueChores } from '../data/chores.js'
+import { getRandomUniqueChores, getStandardChores } from '../data/chores.js'
+import { userSession } from 'boot/supabase'
 
 export default defineComponent({
   name: 'SummaryPage',
@@ -102,6 +103,19 @@ export default defineComponent({
     const router = useRouter()
 
     const confettiIntervalId = ref(null)
+    const userChores = ref([])
+
+    // Fetch user's chores when component mounts
+    onMounted(async () => {
+      if (userSession.value) {
+        try {
+          userChores.value = await getStandardChores(userSession.value.user.id)
+        } catch (error) {
+          console.error('Error loading chores:', error)
+          $q.notify({ type: 'negative', message: 'Failed to load chores' })
+        }
+      }
+    })
 
     // Non-reactive approach for display (as currently implemented)
     const initialChoreData = $q.localStorage.getItem('choreData')
@@ -176,11 +190,13 @@ export default defineComponent({
       }
     })
 
-    const resetWeek = () => {
+    const resetWeek = async () => {
       const currentChoreData = $q.localStorage.getItem('choreData');
       const daysToReset = currentChoreData.days;
 
-      const newUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysToReset.length);
+      // Use actual user chores from database
+      const availableChores = userChores.value.map(c => c.name);
+      const newUniqueChores = getRandomUniqueChores(availableChores, daysToReset.length);
 
       daysToReset.forEach((day, index) => {
         // Reset daily chores
@@ -224,7 +240,7 @@ export default defineComponent({
     const confirmReset = () => {
       $q.dialog({
         title: 'Reset Week',
-        message: 'This will clear all chores, assign new random special chores, and start a new week. Are you sure?', // Updated message
+        message: 'This will clear all progress and assign new random chores from your list. Continue?',
         cancel: true,
         persistent: true
       }).onOk(() => {
