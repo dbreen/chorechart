@@ -27,7 +27,8 @@ export default boot(async ({ app, router }) => {
   // Make the reactive user session available globally
   app.config.globalProperties.$userSession = userSession
 
-  // Provide the reactive user session for Composition API (inject)
+  // Provide for Composition API inject()
+  app.provide('$supabase', supabase)
   app.provide('userSession', userSession)
 })
 
