@@ -36,12 +36,10 @@ module.exports = function (ctx) {
     build: {
       vueRouterMode: 'hash',
       publicPath: '/chorechart/',
-      // vvv ADD THIS vvv
       env: {
-        SUPABASE_URL: 'YOUR_SUPABASE_URL_HERE', // <-- REPLACE THIS
-        SUPABASE_KEY: 'YOUR_SUPABASE_ANON_KEY_HERE' // <-- REPLACE THIS
+        SUPABASE_URL: 'https://mxvldqwpwjeiothsudfy.supabase.co',
+        SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im14dmxkcXdwd2plaW90aHN1ZGZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM1MTEzNDQsImV4cCI6MjA1OTA4NzM0NH0.Z69W0OarxOYTvZCJs3CAB6thhznpgE00DAOeuBHiSuE'
       }
-      // ^^^ ADD THIS ^^^
     },
     pwa: {
       workboxOptions: {},
