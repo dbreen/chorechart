@@ -88,12 +88,12 @@
 </template>
 
 <script>
-import { defineComponent, computed, onMounted, onUnmounted, ref } from 'vue'
+import { defineComponent, computed, onMounted, onUnmounted, ref, inject } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import confetti from 'canvas-confetti'
 // Import chore data and helper
-import { potentialUniqueChores, getRandomUniqueChores } from '../data/chores.js' // Only need potential list and helper here
+import { potentialUniqueChores, getRandomUniqueChores, getStandardChores } from '../data/chores.js'
 
 export default defineComponent({
   name: 'SummaryPage',
@@ -101,6 +101,7 @@ export default defineComponent({
   setup() {
     const $q = useQuasar()
     const router = useRouter()
+    const userSession = inject('userSession')
 
     const confettiIntervalId = ref(null)
 
@@ -175,49 +176,66 @@ export default defineComponent({
       }
     })
 
-    const resetWeek = () => {
-      const currentChoreData = $q.localStorage.getItem('choreData');
-      const daysToReset = currentChoreData.days;
+    const resetWeek = async () => {
+      try {
+        const currentChoreData = $q.localStorage.getItem('choreData');
+        const daysToReset = currentChoreData.days;
 
-      const newUniqueChores = getRandomUniqueChores(potentialUniqueChores, daysToReset.length);
+        // Get user's custom chores from database
+        const userChores = await getStandardChores(userSession.value.user.id);
+        // Extract just the names for random selection
+        const userChoresList = userChores.map(chore => chore.name);
 
-      daysToReset.forEach((day, index) => {
-        // Reset daily chores
-        day.dailyChores.forEach(chore => {
-          chore.completed = false;
+        // Use custom chores if available, fallback to default potentialUniqueChores
+        const newUniqueChores = getRandomUniqueChores(
+          userChoresList.length > 0 ? userChoresList : potentialUniqueChores,
+          daysToReset.length
+        );
+
+        daysToReset.forEach((day, index) => {
+          // Reset daily chores
+          day.dailyChores.forEach(chore => {
+            chore.completed = false;
+          });
+
+          day.uniqueChore.name = newUniqueChores[index];
+          day.uniqueChore.completed = false;
+
+          // Reset bonus chore
+          day.bonusChore.completed = false;
+          day.bonusAvailable = false; // Reset availability as well
+
+          // Clear extra chores
+          day.extraChores = [];
+
+          // Reset status flags
+          day.dailiesCompleted = false;
+          day.uniqueCompleted = false;
+          day.bonusCompleted = false;
+          day.allCompleted = false;
         });
 
-        day.uniqueChore.name = newUniqueChores[index];
-        day.uniqueChore.completed = false;
+        // Update reset date
+        currentChoreData.lastResetDate = new Date().toISOString();
 
-        // Reset bonus chore
-        day.bonusChore.completed = false;
-        day.bonusAvailable = false; // Reset availability as well
+        // Save updated data to local storage
+        $q.localStorage.set('choreData', currentChoreData);
 
-        // Clear extra chores
-        day.extraChores = [];
-
-        // Reset status flags
-        day.dailiesCompleted = false;
-        day.uniqueCompleted = false;
-        day.bonusCompleted = false;
-        day.allCompleted = false;
-      });
-
-      // Update reset date
-      currentChoreData.lastResetDate = new Date().toISOString();
-
-      // Save updated data to local storage
-      $q.localStorage.set('choreData', currentChoreData);
-
-      // Show confirmation
-      $q.notify({
-        message: 'Week has been reset successfully with new chores',
-        color: 'positive'
-      })
-      
-      // Navigate home
-      router.push('/')
+        // Show confirmation
+        $q.notify({
+          message: 'Week has been reset successfully with new chores',
+          color: 'positive'
+        })
+        
+        // Navigate home
+        router.push('/')
+      } catch (error) {
+        console.error('Error resetting week:', error);
+        $q.notify({
+          type: 'negative',
+          message: 'Failed to reset week. Please try again.'
+        })
+      }
     }
     
     const confirmReset = () => {
