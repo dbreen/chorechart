@@ -92,12 +92,17 @@ describe('ManageChores.vue', () => {
     choreModule.createChore.mockResolvedValue({ id: 3, name: 'New Chore', amount: 3.00 })
     
     // Fill the form
-    await wrapper.find('input[label="Chore Name"]').setValue('New Chore')
+    const nameInput = wrapper.find('input[label="Chore Name"]')
+    await nameInput.setValue('New Chore')
     await wrapper.find('input[type="number"]').setValue(3.00)
     
     // Submit the form
     await wrapper.find('form').trigger('submit.prevent')
     await flushPromises()
+    
+    // Check validation state after submission
+    expect(nameInput.classes()).not.toContain('q-field--error')
+    expect(wrapper.find('.q-field__messages').exists()).toBe(false)
     
     // Check if createChore was called with correct data
     expect(choreModule.createChore).toHaveBeenCalledWith({

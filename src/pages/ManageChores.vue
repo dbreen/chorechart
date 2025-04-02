@@ -177,6 +177,7 @@ export default defineComponent({
         await nextTick()
         nameInput.value.resetValidation()
         nameInput.value.focus()
+        await nextTick() // Extra tick for DOM update
         
         $q.notify({
           type: 'positive',
