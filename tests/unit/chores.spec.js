@@ -6,23 +6,32 @@ import {
   potentialUniqueChores
 } from 'src/data/chores'
 import { supabase } from 'boot/supabase'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { installQuasarPlugin } from '../quasar-plugin'
+
+// Install Quasar plugin
+installQuasarPlugin()
 
 // Mock the Supabase client
-jest.mock('boot/supabase', () => ({
-  supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    delete: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis()
-  }
-}))
+vi.mock('boot/supabase', () => {
+  const mockSupabase = {
+    from: vi.fn(() => mockSupabase),
+    select: vi.fn(() => mockSupabase),
+    insert: vi.fn(() => mockSupabase),
+    delete: vi.fn(() => mockSupabase),
+    eq: vi.fn(() => mockSupabase),
+    order: vi.fn(() => mockSupabase)
+  };
+  
+  return {
+    supabase: mockSupabase
+  };
+})
 
 describe('Chores Data Module', () => {
   beforeEach(() => {
     // Reset all mocks
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('getStandardChores', () => {

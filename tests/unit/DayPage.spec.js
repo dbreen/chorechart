@@ -1,18 +1,21 @@
-import { mount, flushPromises } from '@vue/test-utils'
-import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-unit-jest'
+import { mount, flushPromises, config } from '@vue/test-utils'
 import { useRoute } from 'vue-router'
 import DayPage from 'src/pages/DayPage.vue'
 import confetti from 'canvas-confetti'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { installQuasarPlugin } from '../quasar-plugin'
 
-// Mock Quasar plugins and Vue Router
+// Install Quasar plugin
 installQuasarPlugin()
-jest.mock('vue-router', () => ({
-  useRoute: jest.fn(),
-  useRouter: jest.fn(() => ({
-    push: jest.fn()
+
+// Mock Vue Router
+vi.mock('vue-router', () => ({
+  useRoute: vi.fn(),
+  useRouter: vi.fn(() => ({
+    push: vi.fn()
   }))
 }))
-jest.mock('canvas-confetti')
+vi.mock('canvas-confetti')
 
 // Mock localStorage data
 const mockChoreData = {
@@ -41,14 +44,71 @@ describe('DayPage.vue', () => {
     }))
     
     // Set mock localStorage data
-    jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => 
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => 
       JSON.stringify(mockChoreData)
     )
-    jest.spyOn(Storage.prototype, 'setItem')
+    vi.spyOn(Storage.prototype, 'setItem')
+    
+    // Mock $q.localStorage
+    config.global.mocks.$q = {
+      platform: {
+        is: {
+          mobile: false,
+          desktop: true
+        },
+        has: {
+          touch: false
+        }
+      },
+      screen: {
+        width: 1024,
+        height: 768
+      },
+      dark: {
+        isActive: false
+      },
+      dialog: vi.fn().mockReturnValue({ onOk: vi.fn() }),
+      notify: vi.fn(),
+      localStorage: {
+        getItem: vi.fn().mockReturnValue(mockChoreData),
+        setItem: vi.fn(),
+        clear: vi.fn(),
+        removeItem: vi.fn()
+      }
+    }
   })
 
   it('loads correct day data', async () => {
-    const wrapper = mount(DayPage)
+    const wrapper = mount(DayPage, {
+      global: {
+        stubs: {
+          QLayout: true,
+          QPageContainer: true,
+          QPage: true,
+          QHeader: true,
+          QFooter: true,
+          QDrawer: true,
+          QToolbar: true,
+          QToolbarTitle: true,
+          QBtn: true,
+          QIcon: true,
+          QList: true,
+          QItem: true,
+          QItemSection: true,
+          QItemLabel: true,
+          QCard: true,
+          QCardSection: true,
+          QCardActions: true,
+          QInput: true,
+          QSelect: true,
+          QCheckbox: true,
+          QToggle: true,
+          QBanner: true,
+          QDialog: true,
+          QForm: true
+        }
+      }
+    })
     await flushPromises()
     
     expect(wrapper.text()).toContain('Monday')
@@ -108,10 +168,10 @@ describe('DayPage.vue', () => {
     await addButton.trigger('click')
     
     // Mock dialog input
-    const mockDialog = jest.spyOn(wrapper.vm.$q, 'dialog')
+    const mockDialog = vi.spyOn(wrapper.vm.$q, 'dialog')
     mockDialog.mockImplementation((options) => {
       options.onOk('New Extra Chore')
-      return { onOk: jest.fn() }
+      return { onOk: vi.fn() }
     })
     
     await wrapper.vm.addExtraChore()

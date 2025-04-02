@@ -1,19 +1,25 @@
-import { mount, flushPromises } from '@vue/test-utils'
-import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-unit-jest'
+import { mount, flushPromises, config } from '@vue/test-utils'
 import { Notify, Dialog, LocalStorage } from 'quasar'
 import SummaryPage from 'src/pages/SummaryPage.vue'
 import * as choreModule from 'src/data/chores'
 import confetti from 'canvas-confetti'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { installQuasarPlugin } from '../quasar-plugin'
+
+// Install Quasar plugin
+installQuasarPlugin()
 
 // Mock the chores module
-jest.mock('src/data/chores', () => ({
-  getStandardChores: jest.fn(),
-  getRandomUniqueChores: jest.fn(),
+vi.mock('src/data/chores', () => ({
+  getStandardChores: vi.fn(),
+  getRandomUniqueChores: vi.fn(),
   potentialUniqueChores: ['Chore 1', 'Chore 2', 'Chore 3']
 }))
 
-// Install Quasar plugin for testing
-installQuasarPlugin({ plugins: { Notify, Dialog, LocalStorage } })
+// Mock canvas-confetti
+vi.mock('canvas-confetti', () => ({
+  default: vi.fn()
+}))
 
 describe('SummaryPage.vue', () => {
   let wrapper
@@ -65,10 +71,10 @@ describe('SummaryPage.vue', () => {
 
   beforeEach(() => {
     // Reset mocks
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     
     // Mock localStorage.getItem to return test data
-    LocalStorage.getItem = jest.fn().mockReturnValue(mockChoreData)
+    LocalStorage.getItem = vi.fn().mockReturnValue(mockChoreData)
     
     // Mock getStandardChores to return test data
     choreModule.getStandardChores.mockResolvedValue([
@@ -79,13 +85,67 @@ describe('SummaryPage.vue', () => {
     // Mock getRandomUniqueChores
     choreModule.getRandomUniqueChores.mockReturnValue(['New chore 1', 'New chore 2'])
     
+    // Mock $q.localStorage
+    config.global.mocks.$q = {
+      platform: {
+        is: {
+          mobile: false,
+          desktop: true
+        },
+        has: {
+          touch: false
+        }
+      },
+      screen: {
+        width: 1024,
+        height: 768
+      },
+      dark: {
+        isActive: false
+      },
+      dialog: vi.fn().mockReturnValue({ onOk: vi.fn() }),
+      notify: vi.fn(),
+      localStorage: {
+        getItem: vi.fn().mockReturnValue(mockChoreData),
+        setItem: vi.fn(),
+        clear: vi.fn(),
+        removeItem: vi.fn()
+      }
+    }
+    
     // Create the wrapper with global properties
     wrapper = mount(SummaryPage, {
       global: {
         provide: {
           userSession: mockUserSession
         },
-        stubs: ['router-link']
+        stubs: {
+          'router-link': true,
+          QLayout: true,
+          QPageContainer: true,
+          QPage: true,
+          QHeader: true,
+          QFooter: true,
+          QDrawer: true,
+          QToolbar: true,
+          QToolbarTitle: true,
+          QBtn: true,
+          QIcon: true,
+          QList: true,
+          QItem: true,
+          QItemSection: true,
+          QItemLabel: true,
+          QCard: true,
+          QCardSection: true,
+          QCardActions: true,
+          QInput: true,
+          QSelect: true,
+          QCheckbox: true,
+          QToggle: true,
+          QBanner: true,
+          QDialog: true,
+          QForm: true
+        }
       }
     })
   })
@@ -111,7 +171,7 @@ describe('SummaryPage.vue', () => {
 
   it('resets the week when confirmed', async () => {
     // Mock dialog confirmation
-    Dialog.create = jest.fn().mockImplementation(() => {
+    Dialog.create = vi.fn().mockImplementation(() => {
       return {
         onOk: callback => callback()
       }
@@ -119,7 +179,7 @@ describe('SummaryPage.vue', () => {
     
     // Mock router
     const mockRouter = {
-      push: jest.fn()
+      push: vi.fn()
     }
     wrapper.vm.$router = mockRouter
     

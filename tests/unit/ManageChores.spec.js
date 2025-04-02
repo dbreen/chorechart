@@ -1,18 +1,19 @@
-import { mount, flushPromises } from '@vue/test-utils'
-import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-unit-jest'
+import { mount, flushPromises, config } from '@vue/test-utils'
 import { Notify, Dialog, LocalStorage } from 'quasar'
 import ManageChores from 'src/pages/ManageChores.vue'
 import * as choreModule from 'src/data/chores'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { installQuasarPlugin } from '../quasar-plugin'
+
+// Install Quasar plugin
+installQuasarPlugin()
 
 // Mock the chores module
-jest.mock('src/data/chores', () => ({
-  getStandardChores: jest.fn(),
-  createChore: jest.fn(),
-  deleteChore: jest.fn()
+vi.mock('src/data/chores', () => ({
+  getStandardChores: vi.fn(),
+  createChore: vi.fn(),
+  deleteChore: vi.fn()
 }))
-
-// Install Quasar plugin for testing
-installQuasarPlugin({ plugins: { Notify, Dialog, LocalStorage } })
 
 describe('ManageChores.vue', () => {
   let wrapper
@@ -31,10 +32,38 @@ describe('ManageChores.vue', () => {
 
   beforeEach(() => {
     // Reset mocks
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     
     // Mock the getStandardChores to return test data
     choreModule.getStandardChores.mockResolvedValue(mockChores)
+    
+    // Mock $q.localStorage
+    config.global.mocks.$q = {
+      platform: {
+        is: {
+          mobile: false,
+          desktop: true
+        },
+        has: {
+          touch: false
+        }
+      },
+      screen: {
+        width: 1024,
+        height: 768
+      },
+      dark: {
+        isActive: false
+      },
+      dialog: vi.fn().mockReturnValue({ onOk: vi.fn() }),
+      notify: vi.fn(),
+      localStorage: {
+        getItem: vi.fn(),
+        setItem: vi.fn(),
+        clear: vi.fn(),
+        removeItem: vi.fn()
+      }
+    }
     
     // Create the wrapper with global properties
     wrapper = mount(ManageChores, {
@@ -43,11 +72,34 @@ describe('ManageChores.vue', () => {
           userSession: mockUserSession
         },
         stubs: {
+          QLayout: true,
+          QPageContainer: true,
+          QPage: true,
+          QHeader: true,
+          QFooter: true,
+          QDrawer: true,
+          QToolbar: true,
+          QToolbarTitle: true,
+          QBtn: true,
+          QIcon: true,
+          QList: true,
+          QItem: true,
+          QItemSection: true,
+          QItemLabel: true,
+          QCard: true,
+          QCardSection: true,
+          QCardActions: true,
+          QInput: true,
+          QSelect: true,
+          QCheckbox: true,
+          QToggle: true,
+          QBanner: true,
+          QDialog: true,
           QForm: {
             template: '<form><slot /></form>',
             methods: {
-              validate: jest.fn().mockResolvedValue(true),
-              resetValidation: jest.fn()
+              validate: vi.fn().mockResolvedValue(true),
+              resetValidation: vi.fn()
             }
           }
         }
@@ -56,12 +108,12 @@ describe('ManageChores.vue', () => {
     
     // Mock form and input refs
     wrapper.vm.formRef = {
-      validate: jest.fn().mockResolvedValue(true),
-      resetValidation: jest.fn()
+      validate: vi.fn().mockResolvedValue(true),
+      resetValidation: vi.fn()
     }
     wrapper.vm.nameInput = {
-      resetValidation: jest.fn(),
-      focus: jest.fn()
+      resetValidation: vi.fn(),
+      focus: vi.fn()
     }
   })
 
@@ -97,8 +149,8 @@ describe('ManageChores.vue', () => {
           QForm: {
             template: '<form><slot /></form>',
             methods: {
-              validate: jest.fn().mockResolvedValue(true),
-              resetValidation: jest.fn()
+              validate: vi.fn().mockResolvedValue(true),
+              resetValidation: vi.fn()
             }
           }
         }
@@ -150,7 +202,7 @@ describe('ManageChores.vue', () => {
     await flushPromises()
     
     // Mock dialog confirmation
-    Dialog.create = jest.fn().mockImplementation(() => {
+    Dialog.create = vi.fn().mockImplementation(() => {
       return {
         onOk: callback => callback()
       }
@@ -178,7 +230,7 @@ describe('ManageChores.vue', () => {
     choreModule.getStandardChores.mockRejectedValue(new Error('Failed to load'))
     
     // Spy on Notify.create
-    const notifySpy = jest.spyOn(Notify, 'create')
+    const notifySpy = vi.spyOn(Notify, 'create')
     
     // Remount the component
     wrapper = mount(ManageChores, {
