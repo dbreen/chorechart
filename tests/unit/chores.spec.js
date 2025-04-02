@@ -7,7 +7,7 @@ import {
 } from 'src/data/chores'
 import { supabase } from 'boot/supabase'
 
-// Mock supabase
+// Mock the Supabase client
 jest.mock('boot/supabase', () => ({
   supabase: {
     from: jest.fn().mockReturnThis(),
@@ -17,164 +17,168 @@ jest.mock('boot/supabase', () => ({
     eq: jest.fn().mockReturnThis(),
     order: jest.fn().mockReturnThis()
   }
-}));
+}))
 
-describe('Chores Data Layer', () => {
+describe('Chores Data Module', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-  });
-  
+    // Reset all mocks
+    jest.clearAllMocks()
+  })
+
   describe('getStandardChores', () => {
-    test('fetches chores for a user', async () => {
-      // Setup mock response
-      supabase.from.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockResolvedValue({
-          data: [
-            { id: 1, name: 'Chore 1', amount: 1.00 },
-            { id: 2, name: 'Chore 2', amount: 2.00 }
-          ],
-          error: null
-        })
-      });
+    it('fetches chores for a user successfully', async () => {
+      // Mock successful response
+      const mockData = [
+        { id: 1, name: 'Vacuum', amount: 2.50, user_id: 'user-123' },
+        { id: 2, name: 'Dishes', amount: 1.75, user_id: 'user-123' }
+      ]
       
-      // Call function
-      const result = await getStandardChores('user-123');
+      supabase.select.mockImplementation(() => ({
+        data: mockData,
+        error: null
+      }))
       
-      // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('chores');
-      expect(result).toHaveLength(2);
-      expect(result[0].name).toBe('Chore 1');
-    });
-    
-    test('returns empty array when no data', async () => {
-      // Setup mock response
-      supabase.from.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockResolvedValue({
-          data: null,
-          error: null
-        })
-      });
+      const result = await getStandardChores('user-123')
       
-      // Call function
-      const result = await getStandardChores('user-123');
+      // Check if Supabase was called correctly
+      expect(supabase.from).toHaveBeenCalledWith('chores')
+      expect(supabase.eq).toHaveBeenCalledWith('user_id', 'user-123')
       
-      // Assertions
-      expect(result).toEqual([]);
-    });
-    
-    test('throws error when API fails', async () => {
-      // Setup mock response
-      supabase.from.mockReturnValue({
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'API error' }
-        })
-      });
+      // Check if result matches mock data
+      expect(result).toEqual(mockData)
+    })
+
+    it('returns empty array when no chores exist', async () => {
+      // Mock empty response
+      supabase.select.mockImplementation(() => ({
+        data: null,
+        error: null
+      }))
       
-      // Call function and expect error
-      await expect(getStandardChores('user-123')).rejects.toEqual({ message: 'API error' });
-    });
-  });
-  
+      const result = await getStandardChores('user-123')
+      
+      // Check if result is an empty array
+      expect(result).toEqual([])
+    })
+
+    it('throws error when database query fails', async () => {
+      // Mock error response
+      supabase.select.mockImplementation(() => ({
+        data: null,
+        error: new Error('Database error')
+      }))
+      
+      // Check if function throws the error
+      await expect(getStandardChores('user-123')).rejects.toThrow('Database error')
+    })
+  })
+
   describe('createChore', () => {
-    test('creates a new chore', async () => {
-      // Setup mock response
-      supabase.from.mockReturnValue({
-        insert: jest.fn().mockReturnThis(),
-        select: jest.fn().mockResolvedValue({
-          data: [{ id: 1, name: 'New Chore', amount: 1.00 }],
-          error: null
-        })
-      });
+    it('creates a new chore successfully', async () => {
+      // Mock chore data
+      const choreData = {
+        name: 'New Chore',
+        amount: 3.00,
+        user_id: 'user-123'
+      }
       
-      // Call function
-      const choreData = { name: 'New Chore', amount: 1.00, user_id: 'user-123' };
-      const result = await createChore(choreData);
+      // Mock successful response
+      const mockResponse = {
+        ...choreData,
+        id: 3
+      }
       
-      // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('chores');
-      expect(result).toEqual({ id: 1, name: 'New Chore', amount: 1.00 });
-    });
-    
-    test('throws error when API fails', async () => {
-      // Setup mock response
-      supabase.from.mockReturnValue({
-        insert: jest.fn().mockReturnThis(),
-        select: jest.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'API error' }
-        })
-      });
+      supabase.select.mockImplementation(() => ({
+        data: [mockResponse],
+        error: null
+      }))
       
-      // Call function and expect error
-      const choreData = { name: 'New Chore', amount: 1.00, user_id: 'user-123' };
-      await expect(createChore(choreData)).rejects.toEqual({ message: 'API error' });
-    });
-  });
-  
+      const result = await createChore(choreData)
+      
+      // Check if Supabase was called correctly
+      expect(supabase.from).toHaveBeenCalledWith('chores')
+      expect(supabase.insert).toHaveBeenCalledWith(choreData)
+      
+      // Check if result matches mock response
+      expect(result).toEqual(mockResponse)
+    })
+
+    it('throws error when chore creation fails', async () => {
+      supabase.select.mockImplementation(() => ({
+        data: null,
+        error: new Error('Creation failed')
+      }))
+      
+      // Check if function throws the error
+      await expect(createChore({})).rejects.toThrow('Creation failed')
+    })
+  })
+
   describe('deleteChore', () => {
-    test('deletes a chore', async () => {
-      // Setup mock response
-      supabase.from.mockReturnValue({
-        delete: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockResolvedValue({
-          error: null
-        })
-      });
+    it('deletes a chore successfully', async () => {
+      // Mock successful response
+      supabase.delete.mockImplementation(() => ({
+        error: null
+      }))
       
-      // Call function
-      await deleteChore(1);
+      await deleteChore(1)
       
-      // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('chores');
-    });
-    
-    test('throws error when API fails', async () => {
-      // Setup mock response
-      supabase.from.mockReturnValue({
-        delete: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockResolvedValue({
-          error: { message: 'API error' }
-        })
-      });
+      // Check if Supabase was called correctly
+      expect(supabase.from).toHaveBeenCalledWith('chores')
+      expect(supabase.delete).toHaveBeenCalled()
+      expect(supabase.eq).toHaveBeenCalledWith('id', 1)
+    })
+
+    it('throws error when chore deletion fails', async () => {
+      // Mock error response
+      supabase.delete.mockImplementation(() => ({
+        error: new Error('Deletion failed')
+      }))
       
-      // Call function and expect error
-      await expect(deleteChore(1)).rejects.toEqual({ message: 'API error' });
-    });
-  });
-  
+      // Check if function throws the error
+      await expect(deleteChore(1)).rejects.toThrow('Deletion failed')
+    })
+  })
+
   describe('getRandomUniqueChores', () => {
-    test('returns random chores from list', () => {
-      // Mock Math.random to get predictable results
-      const originalRandom = Math.random;
-      Math.random = jest.fn().mockReturnValue(0.5);
+    it('returns the requested number of random chores', () => {
+      const result = getRandomUniqueChores(potentialUniqueChores, 3)
       
-      // Call function
-      const result = getRandomUniqueChores(['A', 'B', 'C', 'D'], 2);
+      // Check if result has correct length
+      expect(result.length).toBe(3)
       
-      // Restore Math.random
-      Math.random = originalRandom;
+      // Check if all items are from the original list
+      result.forEach(chore => {
+        expect(potentialUniqueChores).toContain(chore)
+      })
       
-      // Assertions
-      expect(result).toHaveLength(2);
-      expect(Array.isArray(result)).toBe(true);
-    });
-    
-    test('handles count greater than list length', () => {
-      const result = getRandomUniqueChores(['A', 'B'], 5);
-      expect(result).toHaveLength(2);
-    });
-    
-    test('uses default list when none provided', () => {
-      const result = getRandomUniqueChores(undefined, 2);
-      expect(result).toHaveLength(2);
-      expect(Array.isArray(result)).toBe(true);
-    });
-  });
-});
+      // Check if all items are unique
+      const uniqueItems = new Set(result)
+      expect(uniqueItems.size).toBe(result.length)
+    })
+
+    it('handles requesting more chores than available', () => {
+      // Create a small test list
+      const testList = ['Chore 1', 'Chore 2']
+      
+      const result = getRandomUniqueChores(testList, 5)
+      
+      // Should return all available chores
+      expect(result.length).toBe(2)
+      expect(result).toContain('Chore 1')
+      expect(result).toContain('Chore 2')
+    })
+
+    it('uses default list when no list is provided', () => {
+      const result = getRandomUniqueChores(null, 3)
+      
+      // Check if result has correct length
+      expect(result.length).toBe(3)
+      
+      // Check if all items are from the default list
+      result.forEach(chore => {
+        expect(potentialUniqueChores).toContain(chore)
+      })
+    })
+  })
+})

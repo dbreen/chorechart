@@ -1,158 +1,150 @@
-import { mount } from '@vue/test-utils'
-import { useQuasar } from 'quasar'
-import { useRouter } from 'vue-router'
+import { mount, flushPromises } from '@vue/test-utils'
+import { installQuasarPlugin } from '@quasar/quasar-app-extension-testing-unit-jest'
+import { Notify, Dialog, LocalStorage } from 'quasar'
 import SummaryPage from 'src/pages/SummaryPage.vue'
-import { getStandardChores, getRandomUniqueChores } from 'src/data/chores'
+import * as choreModule from 'src/data/chores'
+import confetti from 'canvas-confetti'
 
-// Mock dependencies
+// Mock the chores module
 jest.mock('src/data/chores', () => ({
-  getStandardChores: jest.fn().mockResolvedValue([]),
+  getStandardChores: jest.fn(),
   getRandomUniqueChores: jest.fn(),
-  potentialUniqueChores: ['Clean bathroom', 'Vacuum living room']
-}));
+  potentialUniqueChores: ['Chore 1', 'Chore 2', 'Chore 3']
+}))
 
-jest.mock('vue-router', () => ({
-  useRouter: jest.fn()
-}));
-
-jest.mock('quasar', () => ({
-  useQuasar: jest.fn()
-}));
-
-jest.mock('canvas-confetti', () => jest.fn());
+// Install Quasar plugin for testing
+installQuasarPlugin({ plugins: { Notify, Dialog, LocalStorage } })
 
 describe('SummaryPage.vue', () => {
-  let wrapper;
-  let mockQuasar;
-  let mockRouter;
-  
-  beforeEach(() => {
-    // Setup mock data
-    const mockChoreData = {
-      days: [
-        {
-          name: 'Monday',
-          dailyChores: [{ id: 1, name: 'Make bed', completed: true }],
-          uniqueChore: { name: 'Clean bathroom', completed: true },
-          bonusChore: { name: 'Empty dishwasher', completed: false },
-          bonusAvailable: true,
-          bonusCompleted: false,
-          dailiesCompleted: true,
-          uniqueCompleted: true,
-          allCompleted: false,
-          extraChores: [
-            { id: 101, name: 'Extra chore 1', completed: true },
-            { id: 102, name: 'Extra chore 2', completed: false }
-          ]
-        },
-        {
-          name: 'Tuesday',
-          dailyChores: [{ id: 1, name: 'Make bed', completed: false }],
-          uniqueChore: { name: 'Vacuum living room', completed: false },
-          bonusChore: { name: 'Empty dishwasher', completed: false },
-          bonusAvailable: false,
-          bonusCompleted: false,
-          dailiesCompleted: false,
-          uniqueCompleted: false,
-          allCompleted: false,
-          extraChores: []
-        }
-      ],
-      lastResetDate: '2023-01-01T00:00:00.000Z'
-    };
-    
-    // Setup Quasar mock
-    mockQuasar = {
-      notify: jest.fn(),
-      dialog: jest.fn().mockReturnValue({ onOk: jest.fn(cb => cb()) }),
-      localStorage: {
-        getItem: jest.fn().mockReturnValue(mockChoreData),
-        set: jest.fn()
+  let wrapper
+  const mockUserSession = {
+    value: {
+      user: {
+        id: 'test-user-id'
       }
-    };
-    useQuasar.mockReturnValue(mockQuasar);
+    }
+  }
+
+  const mockChoreData = {
+    days: [
+      {
+        name: 'Monday',
+        dailyChores: [
+          { id: 1, name: 'Make bed', completed: true },
+          { id: 2, name: 'Clean room', completed: true }
+        ],
+        uniqueChore: { name: 'Vacuum', completed: true },
+        bonusChore: { name: 'Empty dishwasher', completed: false },
+        bonusAvailable: true,
+        bonusCompleted: false,
+        dailiesCompleted: true,
+        uniqueCompleted: true,
+        allCompleted: false,
+        extraChores: [
+          { id: 101, name: 'Extra task', completed: true }
+        ]
+      },
+      {
+        name: 'Tuesday',
+        dailyChores: [
+          { id: 1, name: 'Make bed', completed: false },
+          { id: 2, name: 'Clean room', completed: false }
+        ],
+        uniqueChore: { name: 'Mop floors', completed: false },
+        bonusChore: { name: 'Empty dishwasher', completed: false },
+        bonusAvailable: false,
+        bonusCompleted: false,
+        dailiesCompleted: false,
+        uniqueCompleted: false,
+        allCompleted: false,
+        extraChores: []
+      }
+    ],
+    lastResetDate: '2023-01-01T00:00:00.000Z'
+  }
+
+  beforeEach(() => {
+    // Reset mocks
+    jest.clearAllMocks()
     
-    // Setup Router mock
-    mockRouter = {
-      push: jest.fn()
-    };
-    useRouter.mockReturnValue(mockRouter);
+    // Mock localStorage.getItem to return test data
+    LocalStorage.getItem = jest.fn().mockReturnValue(mockChoreData)
+    
+    // Mock getStandardChores to return test data
+    choreModule.getStandardChores.mockResolvedValue([
+      { id: 1, name: 'Custom chore 1', amount: 1.00 },
+      { id: 2, name: 'Custom chore 2', amount: 2.00 }
+    ])
     
     // Mock getRandomUniqueChores
-    getRandomUniqueChores.mockReturnValue(['New Chore 1', 'New Chore 2']);
+    choreModule.getRandomUniqueChores.mockReturnValue(['New chore 1', 'New chore 2'])
     
-    // Create wrapper with mocked dependencies
+    // Create the wrapper with global properties
     wrapper = mount(SummaryPage, {
       global: {
         provide: {
-          userSession: { value: { user: { id: 'test-user' } } }
-        }
+          userSession: mockUserSession
+        },
+        stubs: ['router-link']
       }
-    });
-  });
-  
-  test('calculates totals correctly', () => {
-    // Check computed totals
-    expect(wrapper.vm.dailiesTotal).toBe(1);
-    expect(wrapper.vm.uniqueTotal).toBe(1);
-    expect(wrapper.vm.bonusTotal).toBe(0);
-    expect(wrapper.vm.extraTotal).toBe(1);
-    expect(wrapper.vm.totalEarned).toBe(3);
-  });
-  
-  test('calculates daily total correctly', () => {
-    const day = {
-      dailiesCompleted: true,
-      uniqueCompleted: true,
-      bonusAvailable: true,
-      bonusCompleted: false,
-      extraChores: [
-        { completed: true },
-        { completed: false }
-      ]
-    };
+    })
+  })
+
+  it('displays the weekly summary correctly', async () => {
+    // Check if days are displayed
+    expect(wrapper.text()).toContain('Monday')
+    expect(wrapper.text()).toContain('Tuesday')
     
-    expect(wrapper.vm.calculateDailyTotal(day)).toBe(3);
-  });
-  
-  test('resets week with new chores', async () => {
-    // Setup custom chores
-    getStandardChores.mockResolvedValue([
-      { id: 1, name: 'Custom Chore 1' },
-      { id: 2, name: 'Custom Chore 2' }
-    ]);
+    // Check if totals are calculated correctly
+    expect(wrapper.text()).toContain('Daily chores: $1')
+    expect(wrapper.text()).toContain('Special chores: $1')
+    expect(wrapper.text()).toContain('Bonus chores: $0')
+    expect(wrapper.text()).toContain('Extra chores: $1')
+    expect(wrapper.text()).toContain('Total Earnings')
+    expect(wrapper.text()).toContain('$3')
+  })
+
+  it('shows confetti effect on mount', () => {
+    // Check if confetti was called
+    expect(confetti).toHaveBeenCalled()
+  })
+
+  it('resets the week when confirmed', async () => {
+    // Mock dialog confirmation
+    Dialog.create = jest.fn().mockImplementation(() => {
+      return {
+        onOk: callback => callback()
+      }
+    })
     
-    // Trigger reset
-    await wrapper.find('button[label="Reset Week"]').trigger('click');
+    // Mock router
+    const mockRouter = {
+      push: jest.fn()
+    }
+    wrapper.vm.$router = mockRouter
     
-    // Dialog should be shown
-    expect(mockQuasar.dialog).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Reset Week'
-      })
-    );
+    // Click reset button
+    await wrapper.find('button:contains("Reset Week")').trigger('click')
     
-    // Custom chores should be fetched
-    expect(getStandardChores).toHaveBeenCalledWith('test-user');
+    // Check if dialog was shown
+    expect(Dialog.create).toHaveBeenCalled()
     
-    // Random chores should be generated
-    expect(getRandomUniqueChores).toHaveBeenCalledWith(
-      ['Custom Chore 1', 'Custom Chore 2'],
-      2
-    );
+    // Wait for promises to resolve
+    await flushPromises()
     
-    // LocalStorage should be updated
-    expect(mockQuasar.localStorage.set).toHaveBeenCalled();
+    // Check if localStorage was updated
+    expect(LocalStorage.set).toHaveBeenCalledWith('choreData', expect.any(Object))
     
-    // Notification should be shown
-    expect(mockQuasar.notify).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: 'Week has been reset successfully with new chores',
-        color: 'positive'
-      })
-    );
+    // Check if router.push was called
+    expect(mockRouter.push).toHaveBeenCalledWith('/')
+  })
+
+  it('calculates daily totals correctly', () => {
+    // Test the calculateDailyTotal method
+    const monday = mockChoreData.days[0]
+    const tuesday = mockChoreData.days[1]
     
-    // Should navigate home
-    expect(mockRouter.push).toHaveBeenCalledWith('/');
-  });
-});
+    expect(wrapper.vm.calculateDailyTotal(monday)).toBe(3) // 1 for dailies, 1 for unique, 0 for bonus, 1 for extra
+    expect(wrapper.vm.calculateDailyTotal(tuesday)).toBe(0) // Nothing completed
+  })
+})
